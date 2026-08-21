@@ -1,0 +1,7 @@
+﻿event_id,event_time,source_system,alarm_code,alarm_name,severity,status,device_id,device_name,device_type,location,point_name,actual_value,threshold_value,unit,description
+EMS-0001,2026-08-14 03:00:12,EMS,UPS-BAT-001,Battery String Failure,CRITICAL,ACTIVE,UPS-A01,UPS-A01,UPS,Building-A/F1/PowerZone-A,Battery Status,FAIL,,,Battery string failure detected
+EMS-0002,2026-08-14 03:00:25,EMS,UPS-OUT-003,Output Voltage Low,CRITICAL,ACTIVE,UPS-A01,UPS-A01,UPS,Building-A/F1/PowerZone-A,Output Voltage,178,220,VAC,Output voltage below threshold
+EMS-0003,2026-08-14 03:01:10,EMS,PDU-POWER-LOSS,Input Power Loss,CRITICAL,ACTIVE,PDU-A01,PDU-A01,PDU,Building-A/F2/IT Hall-A,Input Voltage,0,220,VAC,Input power lost
+DCIM-0001,2026-08-14 03:01:30,DCIM,RACK-POWER-001,Rack Power Loss,MAJOR,ACTIVE,Rack-A01,Rack-A01,RACK,Building-A/F2/ColdAisle-A,Rack Power,0,1,kW,Rack power unavailable
+IT-0001,2026-08-14 03:02:05,ServerMonitor,HOST-DOWN,Server Unreachable,CRITICAL,ACTIVE,GPU-SRV-01,GPU Server-01,SERVER,Rack-A01,Host Status,DOWN,UP,,Server not responding
+APM-0001,2026-08-14 03:03:15,APM,SERVICE-DOWN,AI Training Service Unavailable,CRITICAL,ACTIVE,AI-SVC,AI Training Service,SERVICE,Compute Zone,Availability,0,100,%,Business service unavailable

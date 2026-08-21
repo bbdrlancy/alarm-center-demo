@@ -1,0 +1,4 @@
+﻿event_id,event_time,source_system,alarm_code,alarm_name,severity,status,device_id,device_name,device_type,location,point_name,actual_value,threshold_value,unit,description
+ENV-0001,2026-08-14 14:00:10,BMS,TEMP-HIGH,Rack Inlet Temp High,MAJOR,ACTIVE,Rack-A01,Rack-A01,RACK,ColdAisle-A,Inlet Temp,28.1,26.5,C,Rack inlet temperature high
+ENV-0002,2026-08-14 14:00:15,BMS,TEMP-HIGH,Rack Inlet Temp High,MAJOR,ACTIVE,Rack-A02,Rack-A02,RACK,ColdAisle-A,Inlet Temp,27.9,26.5,C,Rack inlet temperature high
+ENV-0003,2026-08-14 14:00:20,BMS,TEMP-HIGH,Rack Inlet Temp High,MAJOR,ACTIVE,Rack-A03,Rack-A03,RACK,ColdAisle-A,Inlet Temp,28.3,26.5,C,Rack inlet temperature high

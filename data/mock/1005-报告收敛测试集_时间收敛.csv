@@ -1,0 +1,5 @@
+﻿event_id,event_time,source_system,alarm_code,alarm_name,severity,status,device_id,device_name,device_type,location,point_name,actual_value,threshold_value,unit,description
+HVAC-0001,2026-08-14 14:05:00,BMS,CRAH-FAN-001,CRAH Fan Failure,MAJOR,ACTIVE,CRAH-01,CRAH-01,CRAH,Cooling Zone-A,Fan Status,OFF,ON,,Fan stopped
+HVAC-0002,2026-08-14 14:06:00,BMS,AIRFLOW-LOW,Airflow Low,MAJOR,ACTIVE,CRAH-01,CRAH-01,CRAH,Cooling Zone-A,Airflow,1800,3000,m3h,Airflow below threshold
+HVAC-0003,2026-08-14 14:07:00,BMS,TEMP-HIGH,Cold Aisle Temp High,MAJOR,ACTIVE,ColdAisle-A,ColdAisle-A,ZONE,ColdAisle-A,Temperature,28.0,26.0,C,Cold aisle temperature high
+HVAC-0004,2026-08-14 14:08:00,BMS,RACK-TEMP-HIGH,Rack Temp High,MAJOR,ACTIVE,Rack-A01,Rack-A01,RACK,ColdAisle-A,Rack Temp,29.0,27.0,C,Rack temperature high

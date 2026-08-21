@@ -1,0 +1,24 @@
+{
+  "incidentId": "INC-2026-0814-001",
+  "severity": "P1",
+  "rootCause": "UPS-A01 Battery Failure",
+  "rcaConfidence": 98,
+  "rawAlarms": 1248,
+  "patterns": 92,
+  "clusters": 17,
+  "incidentGroups": 3,
+  "finalIncidents": 1,
+  "reductionRate": 99.92,
+  "affectedRack": 12,
+  "affectedServer": 84,
+  "affectedGPU": 336,
+  "affectedService": 2,
+  "timeline": [
+    "UPS Battery Failure",
+    "Output Voltage Low",
+    "PDU Power Loss",
+    "Rack Power Loss",
+    "GPU Server Down",
+    "AI Training Service Unavailable"
+  ]
+}
