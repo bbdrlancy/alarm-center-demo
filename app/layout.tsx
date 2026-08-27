@@ -1,8 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { AiopsCopilot } from '@/components/aiops-copilot'
-import { DemoStoryMode } from '@/components/demo-story-mode'
+import { ClientProviders } from '@/components/client-providers'
 import './globals.css'
 
 const geistSans = Geist({
@@ -35,9 +34,7 @@ export default function RootLayout({
   return (
     <html lang="zh" className={`bg-background ${geistSans.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased">
-        {children}
-        <AiopsCopilot />
-        <DemoStoryMode />
+        <ClientProviders>{children}</ClientProviders>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

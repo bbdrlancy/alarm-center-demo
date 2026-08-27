@@ -4,11 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
 import { Send, Sparkles, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import {
-  copilotWelcome,
-  getMockCopilotResponse,
-  presetQuestions,
-} from "@/lib/copilot-responses"
+  buildCopilotWelcome,
+  getScenarioCopilotResponse,
+} from "@/lib/scenario-copilot"
 
 type Message = {
   id: string
@@ -38,14 +38,19 @@ function renderMessage(content: string) {
 }
 
 export function AiopsCopilot() {
+  const { scenario } = useDemoScenario()
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState("")
   const [typing, setTyping] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "assistant", content: copilotWelcome },
+    { id: "welcome", role: "assistant", content: buildCopilotWelcome(scenario) },
   ])
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setMessages([{ id: `welcome-${scenario.id}`, role: "assistant", content: buildCopilotWelcome(scenario) }])
+  }, [scenario])
 
   useEffect(() => {
     const open = () => setOpen(true)
@@ -81,16 +86,17 @@ export function AiopsCopilot() {
         const reply: Message = {
           id: `a-${Date.now()}`,
           role: "assistant",
-          content: getMockCopilotResponse(query),
+          content: getScenarioCopilotResponse(scenario, query),
         }
         setMessages((prev) => [...prev, reply])
         setTyping(false)
       }, 600)
     },
-    [typing],
+    [typing, scenario],
   )
 
   return (
+    <div className="no-print">
     <>
       {/* Floating action button — Fluent 2 / Copilot style */}
       {!open ? (
@@ -185,7 +191,7 @@ export function AiopsCopilot() {
             快捷问题 · Quick Prompts
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {presetQuestions.map((q) => (
+            {scenario.copilot.suggestions.map((q) => (
               <button
                 key={q}
                 type="button"
@@ -231,5 +237,6 @@ export function AiopsCopilot() {
         </div>
       </aside>
     </>
+    </div>
   )
 }

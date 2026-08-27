@@ -1,3 +1,6 @@
+import { powerScenario } from "@/data/scenarios/power"
+import { rcaHref } from "@/data/scenarios"
+
 export type DemoStoryStageConfig = {
   stage: number
   label: string
@@ -8,30 +11,31 @@ export type DemoStoryStageConfig = {
   durationMs: number
 }
 
+const defaultIncident = powerScenario.incident
+
 /** 8-stage demo · total ~54s (under 60s) */
 export const demoStoryStages: DemoStoryStageConfig[] = [
   {
     stage: 1,
-    label: "Incident Command Center",
-    subtitle: "UPS Battery Failure",
+    label: "Incident Portfolio",
+    subtitle: "12 Open · 2 P1 · ¥12.3M Risk",
     href: "/",
-    highlightId: "root-cause",
+    highlightId: "active-incident-table",
     durationMs: 5500,
   },
   {
     stage: 2,
-    label: "Fault Propagation",
-    subtitle: "UPS → PDU → Rack → GPU → AI Service",
+    label: "Active Incident Table",
+    subtitle: `Select ${defaultIncident.id} · ${defaultIncident.title}`,
     href: "/",
-    highlightId: "fault-propagation",
-    action: "play-propagation",
-    durationMs: 7500,
+    highlightId: "active-incident-table",
+    durationMs: 5500,
   },
   {
     stage: 3,
     label: "RCA Center · Alarm Reduction",
-    subtitle: "1248 → 312 → 92 → 48 → 17 → 1",
-    href: "/rca",
+    subtitle: defaultIncident.alarmReduction.replace(" → ", " → … → "),
+    href: rcaHref(defaultIncident.id),
     highlightId: "correlation-pipeline",
     action: "play-alarm-reduction",
     durationMs: 7500,
@@ -40,7 +44,7 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
     stage: 4,
     label: "Impact Chain",
     subtitle: "故障影响链路动画",
-    href: "/rca",
+    href: rcaHref(defaultIncident.id),
     highlightId: "topology-graph",
     action: "play-impact-chain",
     durationMs: 6000,
@@ -48,7 +52,7 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
   {
     stage: 5,
     label: "AI Explainability Center",
-    subtitle: "Digital Twin → Knowledge Graph → GraphRAG → Root Cause",
+    subtitle: "Impact Path → Root Cause → Business Impact → Explanation",
     href: "/knowledge-center",
     highlightId: "basic-explainability-flow",
     action: "play-explain-steps",
@@ -65,16 +69,16 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
   {
     stage: 7,
     label: "Business Value Center",
-    subtitle: "4 Hours → 2 Minutes → 120× → 85% → ¥8.6M",
+    subtitle: `${powerScenario.businessValue.mttrBefore} → ${powerScenario.businessValue.mttrAfter} → ${powerScenario.businessValue.efficiencyGain}× → ${powerScenario.businessValue.automationRate}% → ¥${powerScenario.businessValue.annualRoi}M`,
     href: "/business-dashboard",
-    highlightId: "hero-roi-summary",
+    highlightId: "executive-summary-hero",
     action: "play-roi-hero",
     durationMs: 6500,
   },
   {
     stage: 8,
     label: "Demo Complete",
-    subtitle: "What → Why → How → Value",
+    subtitle: "Portfolio → RCA → Explainability → Value → Copilot",
     href: "/business-dashboard",
     action: "show-summary",
     durationMs: 6000,

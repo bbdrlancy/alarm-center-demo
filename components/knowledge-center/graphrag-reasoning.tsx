@@ -1,11 +1,33 @@
 "use client"
 
 import { Brain, ChevronDown } from "lucide-react"
-import { graphragSteps } from "@/lib/knowledge-center-data"
+import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import { Panel, ModuleConclusion } from "@/components/primitives"
 import { cn } from "@/lib/utils"
 
 export function GraphragReasoning() {
+  const { scenario } = useDemoScenario()
+  const { incident, graph } = scenario
+  const { graphrag } = graph
+
+  const steps = [
+    { step: 1, title: "检索告警实例", en: "Retrieve alarm instances", detail: `从 ${incident.rawAlarms.toLocaleString("en-US")} 条原始告警中提取与 ${scenario.domain} 域相关的实例对象。` },
+    { step: 2, title: "构建子图", en: "Build subgraph", detail: `基于 ${graph.nodes.length} 个图谱节点与 ${graph.edges.length} 条关系构建局部推理子图。` },
+    { step: 3, title: "空间关系验证", en: "Spatial validation", detail: graphrag.factors[0]?.detail ?? "验证空间与拓扑关系。" },
+    { step: 4, title: "传播链对齐", en: "Propagation alignment", detail: graphrag.factors[1]?.detail ?? "对齐影响传播链路与时间序列。" },
+    { step: 5, title: "业务影响关联", en: "Business correlation", detail: graphrag.factors[2]?.detail ?? `关联业务服务 ${incident.businessImpact}。` },
+    { step: 6, title: "历史模式匹配", en: "Historical pattern", detail: graphrag.factors[3]?.detail ?? "匹配历史故障模式库。" },
+    { step: 7, title: "置信度评分", en: "Confidence scoring", value: `${graphrag.confidence}%`, detail: "综合多源证据计算根因置信度。" },
+    {
+      step: 8,
+      title: "输出最终根因",
+      en: "Final Root Cause",
+      value: incident.rootCause,
+      confidence: `${graphrag.confidence}%`,
+      detail: incident.rcaSummary,
+    },
+  ]
+
   return (
     <Panel
       title="GraphRAG 推理过程"
@@ -14,8 +36,10 @@ export function GraphragReasoning() {
       icon={<Brain className="size-4" />}
       bodyClassName="p-4 md:p-5"
     >
+      <div className="mb-3 text-[11px] font-semibold text-foreground">{graphrag.title}</div>
+
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {graphragSteps.map((step, i) => (
+        {steps.map((step, i) => (
           <div key={step.step} className="relative flex flex-col">
             <div
               className={cn(
@@ -58,7 +82,7 @@ export function GraphragReasoning() {
                 </span>
               ) : null}
             </div>
-            {i < graphragSteps.length - 1 && i % 4 === 3 ? (
+            {i < steps.length - 1 && i % 4 === 3 ? (
               <div className="col-span-full flex justify-center py-1 lg:hidden">
                 <ChevronDown className="size-4 text-border" />
               </div>
@@ -68,7 +92,7 @@ export function GraphragReasoning() {
       </div>
 
       <div className="mt-3 hidden items-center justify-center gap-1 lg:flex">
-        {graphragSteps.slice(0, -1).map((s) => (
+        {steps.slice(0, -1).map((s) => (
           <div key={s.step} className="flex items-center gap-1">
             <span className="rounded bg-primary/12 px-1.5 py-0.5 text-[9px] font-medium text-primary">
               {s.step}
@@ -77,12 +101,13 @@ export function GraphragReasoning() {
           </div>
         ))}
         <span className="rounded bg-[var(--p1)]/15 px-2 py-0.5 text-[10px] font-bold text-[var(--p1)]">
-          8 · UPS-A01 Battery Failure
+          8 · {incident.rootCause}
         </span>
       </div>
 
       <ModuleConclusion>
-        GraphRAG 结合知识图谱、拓扑、时空与历史事件，在 2 分钟内输出置信度 98% 的根因结论。
+        GraphRAG 结合知识图谱、拓扑、时空与历史事件，在 {incident.analysisTime} 内输出置信度 {graphrag.confidence}% 的根因结论。
+        {graph.conclusion}
       </ModuleConclusion>
     </Panel>
   )

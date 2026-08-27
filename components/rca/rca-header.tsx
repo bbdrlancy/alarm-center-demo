@@ -1,12 +1,12 @@
 "use client"
 
 import { Radar, Fingerprint, Gauge, Timer, TrendingDown } from "lucide-react"
-import { rcaHeader } from "@/lib/incident-data"
+import { useActiveIncident } from "@/hooks/use-active-incident"
 import { useCountUp } from "@/hooks/use-count-up"
 import { SectionHeader } from "@/components/primitives"
 
-function ConfidenceValue() {
-  const { ref, display } = useCountUp(rcaHeader.confidence, { duration: 1500, delay: 200, immediate: true })
+function ConfidenceValue({ confidence }: { confidence: number }) {
+  const { ref, display } = useCountUp(confidence, { duration: 1500, delay: 200, immediate: true })
   return (
     <span ref={ref} className="tabular">
       {display}%
@@ -14,21 +14,53 @@ function ConfidenceValue() {
   )
 }
 
-const stats = [
-  { icon: Fingerprint, label: "事件编号 Incident ID", value: rcaHeader.incidentId, accent: "text-foreground", animated: false },
-  { icon: Radar, label: "根因结论 Root Cause", value: rcaHeader.rootCause, accent: "text-[var(--p1)]", animated: false },
-  { icon: Gauge, label: "置信度 Confidence", accent: "text-primary", animated: true },
-  { icon: Timer, label: "分析用时 Analysis Time", value: rcaHeader.duration, accent: "text-foreground", animated: false },
-  { icon: TrendingDown, label: "告警精简 Alarm Reduction", value: rcaHeader.reduction, accent: "text-primary", animated: false },
-]
-
 export function RcaHeader() {
+  const { incidentId, scenario } = useActiveIncident()
+  const { incident } = scenario
+
+  const stats = [
+    {
+      icon: Fingerprint,
+      label: "事件编号 Incident ID",
+      value: incidentId,
+      accent: "text-foreground",
+      animated: false as const,
+    },
+    {
+      icon: Radar,
+      label: "根因结论 Root Cause",
+      value: incident.rootCause,
+      accent: "text-[var(--p1)]",
+      animated: false as const,
+    },
+    {
+      icon: Gauge,
+      label: "置信度 Confidence",
+      accent: "text-primary",
+      animated: true as const,
+    },
+    {
+      icon: Timer,
+      label: "分析用时 Analysis Time",
+      value: incident.analysisTime,
+      accent: "text-foreground",
+      animated: false as const,
+    },
+    {
+      icon: TrendingDown,
+      label: "告警精简 Alarm Reduction",
+      value: incident.alarmReduction,
+      accent: "text-primary",
+      animated: false as const,
+    },
+  ]
+
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card shadow-card">
       <SectionHeader
         title="根因调查概览"
         subtitle="RCA Investigation Overview"
-        description="本次故障调查的核心结论：根因是什么、置信度多高、用了多长时间"
+        description={`${scenario.domain} domain investigation · ${incident.businessImpact}`}
         icon={
           <span className="grid size-10 place-items-center rounded-lg bg-accent text-primary">
             <Radar className="size-5" />
@@ -37,7 +69,7 @@ export function RcaHeader() {
         action={
           <span className="hidden items-center gap-1.5 rounded-md border border-primary/30 bg-accent px-2.5 py-1 text-[11px] font-medium text-primary md:inline-flex">
             <span className="size-1.5 rounded-full bg-primary" />
-            分析完成
+            {incident.status}
           </span>
         }
         className="border-b border-border"
@@ -51,7 +83,7 @@ export function RcaHeader() {
                 {s.label}
               </div>
               <div className={`truncate text-sm font-semibold tabular ${s.accent}`}>
-                {s.animated ? <ConfidenceValue /> : s.value}
+                {s.animated ? <ConfidenceValue confidence={incident.confidence} /> : s.value}
               </div>
             </div>
           </div>

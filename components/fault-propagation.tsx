@@ -1,7 +1,8 @@
 "use client"
 
-import { Network, Zap, Server, Cpu, Boxes, Plug, Layers } from "lucide-react"
-import { propagationNodes, type NodeStatus } from "@/lib/incident-data"
+import { Network, Zap, Server, Cpu, Layers } from "lucide-react"
+import type { NodeStatus } from "@/lib/incident-data"
+import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import { useInView } from "@/hooks/use-in-view"
 import { useSequentialStages } from "@/hooks/use-sequential-stages"
 import { useDemoStory } from "@/hooks/use-demo-story"
@@ -14,24 +15,19 @@ const statusStyle: Record<NodeStatus, { color: string; ring: string; bg: string;
   normal: { color: "var(--ok)", ring: "border-primary/40", bg: "bg-primary/10", label: "正常" },
 }
 
-const nodeIcons: Record<string, typeof Zap> = {
-  transformer: Zap,
-  ups: Plug,
-  pdu: Boxes,
-  rack: Layers,
-  gpu: Server,
-  service: Cpu,
-}
+const chainIcons = [Zap, Layers, Layers, Server, Cpu]
 
 export function FaultPropagation() {
+  const { scenario } = useDemoScenario()
+  const nodes = scenario.impactChain
   const { ref, inView } = useInView()
   const { stage, playing, runId } = useDemoStory()
   const demoActive = stage === 2 && playing
-  const { isReached, isCurrent, isFlowing } = useSequentialStages(propagationNodes.length, {
+  const { isReached, isCurrent, isFlowing } = useSequentialStages(nodes.length, {
     enabled: inView || demoActive,
     stepDelay: demoActive ? 650 : 900,
     startDelay: demoActive ? 100 : 300,
-    resetKey: demoActive ? runId : 0,
+    resetKey: demoActive ? runId * 10 + scenario.id.length : scenario.id.length,
   })
 
   return (
@@ -52,10 +48,10 @@ export function FaultPropagation() {
       }
     >
       <div ref={ref} className="flex flex-col gap-0">
-        {propagationNodes.map((node, i) => {
+        {nodes.map((node, i) => {
           const st = statusStyle[node.status]
-          const Icon = nodeIcons[node.id]
-          const isLast = i === propagationNodes.length - 1
+          const Icon = chainIcons[i] ?? Network
+          const isLast = i === nodes.length - 1
           const reached = isReached(i)
           const current = isCurrent(i)
           const flowing = isFlowing(i)
@@ -145,7 +141,7 @@ export function FaultPropagation() {
         })}
       </div>
       <ModuleConclusion>
-        故障由 UPS 根因沿供电链级联至 GPU 集群与 AI 业务，处置需从电源源头切断传播路径。
+        {scenario.domain} 域故障由 {scenario.incident.rootCause} 沿传播链级联至 {scenario.incident.businessImpact}，处置需从源头发切断传播路径。
       </ModuleConclusion>
     </Panel>
   )

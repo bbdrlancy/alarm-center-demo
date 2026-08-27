@@ -214,3 +214,36 @@
   transition: outline 0.3s ease, box-shadow 0.3s ease;
   border-radius: 0.5rem;
 }
+
+/* PDF / print export */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only,
+  .hidden.print\:block {
+    display: block !important;
+  }
+
+  aside[class*="w-60"],
+  header.sticky,
+  .demo-story-highlight {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  #copilot-static-section {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  #copilot-static-section .break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

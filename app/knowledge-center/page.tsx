@@ -6,7 +6,7 @@ export default function KnowledgeCenterPage() {
     <AppShell
       active="knowledge"
       title="AI 推理中心"
-      subtitle="AI Explainability Center"
+      subtitle="AI Explainability Center · Why AI knows?"
     >
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4">
         <ExplainabilityCenter />

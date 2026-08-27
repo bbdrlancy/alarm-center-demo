@@ -16,7 +16,7 @@ export function ExplainabilityModeSwitch({
       <div>
         <div className="text-[11px] font-semibold text-foreground">Mode Switch · 模式切换</div>
         <div className="text-[10px] text-muted-foreground">
-          Basic 面向销售与客户 · Expert 面向 CTO 与架构师
+          Basic：业务语言解释 · Expert：完整推理链与知识来源
         </div>
       </div>
       <div

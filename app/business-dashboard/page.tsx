@@ -1,50 +1,27 @@
 import { AppShell } from "@/components/app-shell"
-import { HeroRoiSummary } from "@/components/business-dashboard/hero-roi-summary"
-import { AiCapability } from "@/components/business-dashboard/ai-capability"
-import { AutomationCenter } from "@/components/business-dashboard/automation-center"
-import { BusinessImpact } from "@/components/business-dashboard/business-impact"
-import { ExecutiveInsight } from "@/components/business-dashboard/executive-insight"
-import { RoiOverview } from "@/components/business-dashboard/roi-overview"
-import { OpenCopilotContinue, PageLearnBanner, StorylineStrip } from "@/components/page-flow"
+import { PlatformValueSection } from "@/components/business-dashboard/platform-value-section"
+import { ScenarioValueSection } from "@/components/business-dashboard/scenario-value-section"
+import { PageQuestionBanner, StorylineStrip } from "@/components/page-question-banner"
 
 export default function BusinessDashboardPage() {
   return (
     <AppShell
       active="business"
       title="业务价值中心"
-      subtitle="Business Value Center"
+      subtitle="Business Value Center · Why invest?"
     >
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4">
-        <PageLearnBanner
-          questions={[
-            "这套系统值多少钱？",
-            "节省多少时间？",
-            "降低多少风险？",
-            "ROI 是多少？",
-          ]}
+        <StorylineStrip activeStep={3} />
+
+        <PageQuestionBanner
+          question="Why invest?"
+          questionZh="为什么投资？"
+          description="分场景价值与平台价值两层展示 ROI：当前事故场景收益 vs AIOps 平台整体回报。"
         />
 
-        <HeroRoiSummary />
+        <ScenarioValueSection />
 
-        <StorylineStrip />
-
-        <section id="business-impact">
-          <BusinessImpact />
-        </section>
-
-        <section id="automation-center">
-          <AutomationCenter />
-        </section>
-
-        <section id="ai-capability">
-          <AiCapability />
-        </section>
-
-        <ExecutiveInsight />
-
-        <RoiOverview />
-
-        <OpenCopilotContinue />
+        <PlatformValueSection />
       </div>
     </AppShell>
   )

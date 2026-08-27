@@ -9,7 +9,9 @@ import {
   type ExplainabilityMode,
 } from "@/components/knowledge-center/explainability-mode-switch"
 import { ExpertExplainabilityFlow } from "@/components/knowledge-center/expert-explainability-flow"
-import { ContinueTo, PageLearnBanner, StorylineStrip } from "@/components/page-flow"
+import { CopilotStaticSection } from "@/components/knowledge-center/copilot-static-section"
+import { ContinueTo } from "@/components/page-flow"
+import { PageQuestionBanner, StorylineStrip } from "@/components/page-question-banner"
 import { useDemoStory } from "@/hooks/use-demo-story"
 
 export function ExplainabilityCenter() {
@@ -23,23 +25,34 @@ export function ExplainabilityCenter() {
   }, [stage, playing])
 
   return (
-    <div id="explainability-center">
-      <PageLearnBanner
-        questions={[
-          "AI 为什么知道？",
-          "为什么不是 PDU？",
-          "为什么不是 GPU？",
-          "为什么置信度 98%？",
-        ]}
+    <div id="explainability-center" className="flex flex-col gap-4">
+      <StorylineStrip activeStep={2} />
+
+      <PageQuestionBanner
+        question="Why does AI know?"
+        questionZh="AI 为什么知道？"
+        description={
+          mode === "basic"
+            ? "简洁模式：传播路径、根因、业务影响与结论说明。"
+            : "专家模式：数字孪生、本体、知识图谱、GraphRAG 与知识来源的完整推理链。"
+        }
       />
 
-      <ExplainabilityModeSwitch mode={mode} onModeChange={setMode} />
-
-      {mode === "expert" ? <StorylineStrip /> : null}
+      <div className="no-print">
+        <ExplainabilityModeSwitch mode={mode} onModeChange={setMode} />
+      </div>
 
       {mode === "basic" ? <BasicExplainabilityFlow /> : <ExpertExplainabilityFlow />}
 
-      <ContinueTo label="业务价值中心" href="/business-dashboard" />
+      <CopilotStaticSection />
+
+      <div className="no-print rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-center text-[11px] text-muted-foreground">
+        交互式 Copilot 可通过右下角浮动按钮全局访问 · Global floating Copilot available on every page
+      </div>
+
+      <div className="no-print">
+        <ContinueTo label="业务价值中心 · Business Value" href="/business-dashboard" />
+      </div>
     </div>
   )
 }

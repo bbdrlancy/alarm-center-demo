@@ -107,6 +107,11 @@ const responses: Record<(typeof presetQuestions)[number], string> = {
   ].join("\n\n"),
 }
 
+export const copilotPrintExamples = presetQuestions.map((question) => ({
+  question,
+  answer: responses[question],
+}))
+
 export function getMockCopilotResponse(query: string): string {
   const matched = matchQuery(query)
   if (matched) return responses[matched]

@@ -1,58 +1,37 @@
 import { AppShell } from "@/components/app-shell"
-import { AiValueSummary } from "@/components/ai-value-summary"
-import { ConvergenceFunnel } from "@/components/convergence-funnel"
-import { RootCauseCard } from "@/components/root-cause-card"
-import { ImpactAnalysis } from "@/components/impact-analysis"
-import { IncidentTimeline } from "@/components/incident-timeline"
-import { ActionCenter } from "@/components/action-center"
-import { IncidentReport } from "@/components/incident-report"
-import { FaultPropagation } from "@/components/fault-propagation"
-import { ContinueTo, PageLearnBanner } from "@/components/page-flow"
+import { ActiveIncidentTable } from "@/components/incident-portfolio/active-incident-table"
+import { IncidentHeatmap } from "@/components/incident-portfolio/incident-heatmap"
+import { RecommendedActions } from "@/components/incident-portfolio/recommended-actions"
+import { PortfolioExecutiveSummary } from "@/components/incident-portfolio/portfolio-executive-summary"
+import { PageQuestionBanner } from "@/components/page-question-banner"
+import { StorylineStrip } from "@/components/page-question-banner"
+import { ScenarioContinueToRca } from "@/components/scenario/scenario-continue-to-rca"
 
-export default function Page() {
+export default function IncidentPortfolioPage() {
   return (
     <AppShell
-      active="command"
-      title="事故处置中心"
-      subtitle="Incident Command Center"
+      active="portfolio"
+      title="事故组合视图"
+      subtitle="Incident Portfolio · What happened?"
     >
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4">
-        <PageLearnBanner
-          questions={["发生了什么？", "影响了什么？", "谁负责处理？", "下一步怎么办？"]}
+        <StorylineStrip activeStep={0} />
+
+        <PageQuestionBanner
+          question="What happened?"
+          questionZh="发生了什么？"
+          description="全局事故态势：当前活跃事件、领域风险分布与管理层摘要。"
         />
 
-        <AiValueSummary />
+        <ActiveIncidentTable />
 
-        <section id="incident-overview">
-          <div className="mb-2 text-[11px] font-semibold text-muted-foreground">
-            事故概览 · Incident Overview
-          </div>
-          <div className="mt-2" id="fault-propagation">
-            <FaultPropagation />
-          </div>
-        </section>
+        <IncidentHeatmap />
 
-        <section id="root-cause">
-          <RootCauseCard />
-        </section>
+        <RecommendedActions />
 
-        <section id="impact-analysis">
-          <ImpactAnalysis />
-        </section>
+        <PortfolioExecutiveSummary />
 
-        <section id="action-center">
-          <ActionCenter />
-        </section>
-
-        <section id="incident-timeline">
-          <IncidentTimeline />
-        </section>
-
-        <section id="incident-report">
-          <IncidentReport />
-        </section>
-
-        <ContinueTo label="根因分析中心" href="/rca" />
+        <ScenarioContinueToRca label="根因分析中心 · RCA Center" />
       </div>
     </AppShell>
   )

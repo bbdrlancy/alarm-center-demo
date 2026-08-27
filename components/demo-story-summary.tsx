@@ -4,24 +4,24 @@ import { Sparkles } from "lucide-react"
 
 const summaryItems = [
   {
-    title: "What Happened",
-    zh: "发生了什么",
-    text: "UPS-A01 电池组故障触发 Power Zone A 供电中断，1,248 条告警涌入。",
+    title: "Incident Portfolio",
+    zh: "全局事故视图",
+    text: "12 起活跃事故，Power 与 Cooling 为主要风险域，预估业务暴露 ¥12.3M。",
   },
   {
-    title: "Why Happened",
-    zh: "为什么发生",
-    text: "电池内阻异常升高导致旁路切换失败，故障沿 UPS → PDU → Rack → GPU 级联传播。",
+    title: "Root Cause Investigation",
+    zh: "根因调查",
+    text: "从 Portfolio 选择事故进入 RCA，1,248 条告警收敛至唯一根因，98% 置信度。",
   },
   {
-    title: "Why AI Knows",
-    zh: "AI 为什么知道",
-    text: "Digital Twin + Knowledge Graph + GraphRAG 可解释推理，98% 置信度定位唯一根因。",
+    title: "AI Explainability",
+    zh: "AI 可解释性",
+    text: "Impact Path、Root Cause、Business Impact 与 Explanation 以业务语言呈现 AI 推理。",
   },
   {
-    title: "What Value Delivered",
-    zh: "创造了什么价值",
-    text: "分析从 4 小时压缩至 2 分钟，自动化率 85%，年价值约 ¥860 万。",
+    title: "Business Value & Copilot",
+    zh: "业务价值与 Copilot",
+    text: "分析从 4 小时压缩至 2 分钟，自动化率 85%，年 ROI ¥8.6M；Copilot 随时解答。",
   },
 ] as const
 
@@ -36,7 +36,7 @@ export function DemoStorySummary({ onClose }: { onClose: () => void }) {
             Demo Story Complete
           </div>
           <h2 className="text-xl font-bold text-foreground">AIOps 产品故事线</h2>
-          <p className="text-[12px] text-muted-foreground">What → Why → How → Value</p>
+          <p className="text-[12px] text-muted-foreground">Portfolio → RCA → Explainability → Value → Copilot</p>
         </div>
         <div className="grid gap-3 p-6 sm:grid-cols-2">
           {summaryItems.map((item) => (

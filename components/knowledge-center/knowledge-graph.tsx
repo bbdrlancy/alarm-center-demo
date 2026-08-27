@@ -2,11 +2,8 @@
 
 import { useMemo, useState } from "react"
 import { ChevronDown, Share2 } from "lucide-react"
-import {
-  incidentInstanceMapping,
-  knowledgeGraphEdges,
-  knowledgeGraphNodes,
-} from "@/lib/knowledge-center-data"
+import { useDemoScenario } from "@/components/scenario/scenario-provider"
+import { graphEdgeLabel, layoutGraphNodes } from "@/lib/scenario-graph-layout"
 import { Panel, ModuleConclusion } from "@/components/primitives"
 import { cn } from "@/lib/utils"
 
@@ -14,37 +11,41 @@ const groupColor: Record<string, string> = {
   device: "var(--p1)",
   location: "var(--p2)",
   service: "var(--primary)",
-  process: "#4aa3ff",
-  knowledge: "#8b6fd4",
+  network: "#4aa3ff",
+  incident: "#8b6fd4",
 }
 
-const incidentPathIds = new Set(incidentInstanceMapping.map((n) => n.id))
-
-function neighbors(id: string): Set<string> {
+function neighbors(
+  id: string,
+  edges: { source: string; target: string }[],
+): Set<string> {
   const set = new Set<string>([id])
-  for (const e of knowledgeGraphEdges) {
-    if (e.from === id) set.add(e.to)
-    if (e.to === id) set.add(e.from)
+  for (const e of edges) {
+    if (e.source === id) set.add(e.target)
+    if (e.target === id) set.add(e.source)
   }
   return set
 }
 
 function IncidentMappingStrip() {
+  const { scenario } = useDemoScenario()
+  const { incident, graph } = scenario
+
   return (
     <div className="rounded-lg border border-[var(--p1)]/35 bg-[var(--p1)]/5 px-3 py-2.5">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-[10px] font-semibold text-[var(--p1)]">
-          Current Incident Mapping · 当前事故实例映射
+          Current Incident Mapping · {scenario.domain}
         </span>
-        <span className="text-[9px] text-muted-foreground">实例对象在本体概念上的具体映射</span>
+        <span className="text-[9px] text-muted-foreground">{incident.id}</span>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-1">
-        {incidentInstanceMapping.map((node, i) => (
-          <div key={node.id} className="flex items-center gap-1">
+        {graph.mapping.map((label, i) => (
+          <div key={label} className="flex items-center gap-1">
             <span className="rounded-md border border-[var(--p1)] bg-[var(--p1)]/12 px-2 py-1 text-[10px] font-semibold text-[var(--p1)]">
-              {node.label}
+              {label}
             </span>
-            {i < incidentInstanceMapping.length - 1 ? (
+            {i < graph.mapping.length - 1 ? (
               <ChevronDown className="size-3 rotate-[-90deg] text-[var(--p1)]" />
             ) : null}
           </div>
@@ -55,14 +56,18 @@ function IncidentMappingStrip() {
 }
 
 function InstanceRegistry() {
+  const { scenario } = useDemoScenario()
+  const nodes = useMemo(() => layoutGraphNodes(scenario.graph.nodes), [scenario])
+  const highlighted = useMemo(() => new Set(nodes.map((n) => n.id)), [nodes])
+
   return (
     <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
-      {knowledgeGraphNodes.map((node) => (
+      {nodes.map((node) => (
         <div
           key={node.id}
           className={cn(
             "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-[10px]",
-            incidentPathIds.has(node.id)
+            highlighted.has(node.id)
               ? "border-[var(--p1)]/40 bg-[var(--p1)]/5"
               : "border-border bg-card",
           )}
@@ -71,7 +76,7 @@ function InstanceRegistry() {
           <span className="rounded bg-primary/10 px-1 py-0.5 text-[8px] font-medium text-primary">
             instance_of
           </span>
-          <span className="text-muted-foreground">{node.concept}</span>
+          <span className="text-muted-foreground">{node.category}</span>
         </div>
       ))}
     </div>
@@ -79,9 +84,15 @@ function InstanceRegistry() {
 }
 
 export function KnowledgeGraph() {
-  const [selected, setSelected] = useState<string | null>("ups")
+  const { scenario } = useDemoScenario()
+  const { graph, incident } = scenario
+  const nodes = useMemo(() => layoutGraphNodes(graph.nodes), [graph.nodes])
+  const [selected, setSelected] = useState<string | null>(() => nodes[0]?.id ?? null)
 
-  const highlight = useMemo(() => (selected ? neighbors(selected) : null), [selected])
+  const highlight = useMemo(
+    () => (selected ? neighbors(selected, graph.edges) : null),
+    [selected, graph.edges],
+  )
 
   return (
     <Panel
@@ -104,10 +115,11 @@ export function KnowledgeGraph() {
             </marker>
           </defs>
 
-          {knowledgeGraphEdges.map((edge, i) => {
-            const from = knowledgeGraphNodes.find((n) => n.id === edge.from)!
-            const to = knowledgeGraphNodes.find((n) => n.id === edge.to)!
-            const lit = !highlight || (highlight.has(edge.from) && highlight.has(edge.to))
+          {graph.edges.map((edge, i) => {
+            const from = nodes.find((n) => n.id === edge.source)!
+            const to = nodes.find((n) => n.id === edge.target)!
+            if (!from || !to) return null
+            const lit = !highlight || (highlight.has(edge.source) && highlight.has(edge.target))
             const mx = (from.x + to.x) / 2
             const my = (from.y + to.y) / 2
             return (
@@ -127,14 +139,14 @@ export function KnowledgeGraph() {
                   textAnchor="middle"
                   className="fill-muted-foreground text-[7px]"
                 >
-                  {edge.label}
+                  {graphEdgeLabel(edge.relation)}
                 </text>
               </g>
             )
           })}
 
-          {knowledgeGraphNodes.map((node) => {
-            const color = groupColor[node.group]
+          {nodes.map((node) => {
+            const color = groupColor[node.category] ?? "var(--primary)"
             const lit = !highlight || highlight.has(node.id)
             const isSel = selected === node.id
             const onPath = node.incidentPath
@@ -172,7 +184,7 @@ export function KnowledgeGraph() {
                   textAnchor="middle"
                   className="fill-muted-foreground text-[6.5px]"
                 >
-                  {node.concept}
+                  {node.category}
                 </text>
               </g>
             )
@@ -197,8 +209,8 @@ export function KnowledgeGraph() {
       </div>
 
       <ModuleConclusion>
-        UPS-A01、UPS-BAT-001、INC-20260820 等实例通过 powered_by、generates、impacts 等关系形成完整推理上下文——GraphRAG
-        在此图谱上检索路径并完成根因分析。
+        {graph.mapping.join("、")} 等实例通过 {graph.edges.map((e) => graphEdgeLabel(e.relation)).join("、")}{" "}
+        等关系形成完整推理上下文——GraphRAG 在此图谱上检索路径并完成根因分析（置信度 {incident.confidence}%）。
       </ModuleConclusion>
     </Panel>
   )

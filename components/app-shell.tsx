@@ -5,7 +5,7 @@ import {
   Activity,
   BarChart3,
   Bell,
-  LayoutDashboard,
+  LayoutGrid,
   Radar,
   Search,
   Settings,
@@ -16,10 +16,11 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { StatusDot } from "@/components/primitives"
 import { DemoStoryStartButton } from "@/components/demo-story-mode"
+import { ScenarioSwitcher } from "@/components/scenario/scenario-switcher"
 
 const nav = [
-  { icon: LayoutDashboard, label: "事故处置中心", en: "Incident Command Center", href: "/", key: "command" },
-  { icon: Radar, label: "根因分析中心", en: "Root Cause Investigation Center", href: "/rca", key: "rca" },
+  { icon: LayoutGrid, label: "事故组合视图", en: "Incident Portfolio", href: "/", key: "portfolio" },
+  { icon: Radar, label: "根因分析中心", en: "RCA Center", href: "/rca", key: "rca" },
   { icon: Sparkles, label: "AI 推理中心", en: "AI Explainability Center", href: "/knowledge-center", key: "knowledge" },
   { icon: BarChart3, label: "业务价值中心", en: "Business Value Center", href: "/business-dashboard", key: "business" },
 ]
@@ -56,7 +57,7 @@ export function AppShell({
           </div>
           <div className="leading-tight">
             <div className="text-[13px] font-semibold text-foreground">AIOps 演示平台</div>
-            <div className="text-[10px] text-muted-foreground">What → Why → How → Value</div>
+            <div className="text-[10px] text-muted-foreground">What → Why → Why AI → Value</div>
           </div>
         </div>
 
@@ -128,7 +129,7 @@ export function AppShell({
 
           <span className="hidden items-center gap-1.5 rounded-md border border-[var(--p1)]/40 bg-[var(--p1)]/10 px-2.5 py-1.5 text-xs font-medium text-[var(--p1)] sm:inline-flex">
             <span className="size-1.5 rounded-full bg-[var(--p1)]" />
-            1 起 P1 进行中
+            2 起 P1 进行中
           </span>
 
           <button
@@ -146,6 +147,8 @@ export function AppShell({
           >
             <Settings className="size-4" />
           </button>
+
+          <ScenarioSwitcher />
 
           <DemoStoryStartButton />
 

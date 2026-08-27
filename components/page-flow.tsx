@@ -107,13 +107,17 @@ export function OpenCopilotContinue() {
 }
 
 export function StorylineStrip() {
-  const steps = ["What Happened", "Why Happened", "Why AI Knows", "What Value Delivered"]
+  const steps = [
+    "Incident Portfolio",
+    "RCA Center",
+    "AI Explainability",
+    "Business Value",
+  ]
   return (
     <div className="flex flex-wrap items-center justify-center gap-1 rounded-lg border border-border/60 bg-background/50 px-3 py-2 text-[9px] text-muted-foreground">
-      <Sparkles className="mr-1 size-3 text-primary" />
       {steps.map((s, i) => (
         <span key={s} className="flex items-center gap-1">
-          <span className={cn(i === 0 && "font-medium text-foreground")}>{s}</span>
+          <span>{s}</span>
           {i < steps.length - 1 ? <ArrowRight className="size-2.5 opacity-50" /> : null}
         </span>
       ))}

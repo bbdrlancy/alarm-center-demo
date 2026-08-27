@@ -62,7 +62,7 @@ export const demoSteps: DemoStep[] = [
     label: "价值展示",
     subtitle: "节约时间 · 降低风险 · ROI",
     href: "/business-dashboard",
-    scrollTo: "hero-roi-summary",
+    scrollTo: "executive-summary-hero",
     durationMs: 6000,
   },
 ]

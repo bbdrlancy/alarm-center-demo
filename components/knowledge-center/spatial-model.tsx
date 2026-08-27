@@ -14,7 +14,6 @@ import {
   getAncestors,
   getBreadcrumb,
   impactLegend,
-  impactPathLabels,
   incidentAutoExpand,
   isDomainNode,
   kgEdges,
@@ -28,6 +27,7 @@ import {
   type TwinExplorerNode,
 } from "@/lib/digital-twin-explorer-data"
 import { CrossLayerView } from "@/components/knowledge-center/cross-layer-view"
+import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import { DomainTopologyExplorer } from "@/components/knowledge-center/domain-topology-explorer"
 import { NodeDrillDownPanel } from "@/components/knowledge-center/node-drill-down-panel"
 import { Panel, ModuleConclusion } from "@/components/primitives"
@@ -64,33 +64,37 @@ function impactStyles(role: "root" | "impacted" | "healthy") {
 }
 
 function ImpactPathStrip() {
+  const { scenario } = useDemoScenario()
+  const { incident, impactChain, digitalTwin } = scenario
+
   return (
     <div className="rounded-lg border border-[var(--p1)]/30 bg-[var(--p1)]/5 px-3 py-2.5">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-[10px] font-semibold text-[var(--p1)]">事故传播路径 · Incident Impact Path</span>
         <span className="rounded bg-[var(--p1)]/15 px-1.5 py-0.5 text-[9px] font-medium text-[var(--p1)]">
-          Root Cause: UPS-A01
+          Root Cause: {digitalTwin.rootCauseLabel}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-1">
-        {impactPathLabels.map((label, i) => (
-          <div key={label} className="flex items-center gap-1">
+        {impactChain.map((node, i) => (
+          <div key={node.id} className="flex items-center gap-1">
             <span
               className={cn(
                 "rounded-md border px-2 py-1 text-[10px] font-semibold",
-                i === 0
+                node.status === "root"
                   ? "border-[var(--p1)] bg-[var(--p1)]/15 text-[var(--p1)]"
                   : "border-[var(--p2)] bg-[var(--p2)]/12 text-[var(--p2)]",
               )}
             >
-              {label}
+              {node.label}
             </span>
-            {i < impactPathLabels.length - 1 ? (
+            {i < impactChain.length - 1 ? (
               <ChevronDown className="size-3 rotate-[-90deg] text-muted-foreground" />
             ) : null}
           </div>
         ))}
       </div>
+      <p className="mt-1.5 text-[9px] text-muted-foreground">{incident.id} · {digitalTwin.focus}</p>
     </div>
   )
 }
@@ -274,6 +278,7 @@ function collectExpandableIds(id: string, view: ExplorerView, out: Set<string>) 
 }
 
 export function SpatialModel() {
+  const { scenario } = useDemoScenario()
   const [view, setView] = useState<ExplorerView>("spatial")
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(incidentAutoExpand))
   const [selectedId, setSelectedId] = useState<string>("ups-a01")
@@ -324,7 +329,7 @@ export function SpatialModel() {
     <Panel
       title="数字孪生"
       subtitle="Digital Twin"
-      description="影响在哪里？ · 展示故障影响的空间与拓扑范围"
+      description={`Digital Twin focus · ${scenario.digitalTwin.focus}`}
       icon={<Building2 className="size-4" />}
       action={
         <div className="flex flex-wrap gap-2 text-[10px]">
@@ -338,6 +343,19 @@ export function SpatialModel() {
       }
       bodyClassName="space-y-3 p-3 md:p-4"
     >
+      <div
+        className="rounded-lg border px-3 py-2 text-[11px]"
+        style={{
+          borderColor: `${scenario.color}40`,
+          backgroundColor: `${scenario.color}0a`,
+          color: "var(--foreground)",
+        }}
+      >
+        <span className="font-semibold" style={{ color: scenario.color }}>
+          {scenario.name}
+        </span>
+        <span className="text-muted-foreground"> · {scenario.incident.rootCause} · Impact: {scenario.incident.businessImpact}</span>
+      </div>
       <div className="flex flex-wrap gap-1.5">
         {explorerViews.map((v) => (
           <button
@@ -433,9 +451,7 @@ export function SpatialModel() {
         )}
       </div>
 
-      <ModuleConclusion>
-        每个 Domain 内部保留供电/制冷/网络/存储/业务拓扑链路；点击 UPS-A01 可查看 GraphRAG 如何基于空间、供电、业务与图谱关系判定 98% 置信度根因。
-      </ModuleConclusion>
+      <ModuleConclusion>{scenario.digitalTwin.conclusion}</ModuleConclusion>
     </Panel>
   )
 }

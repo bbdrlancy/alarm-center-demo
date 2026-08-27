@@ -1,19 +1,30 @@
+"use client"
+
 import { Target } from "lucide-react"
+import { useActiveIncident } from "@/hooks/use-active-incident"
 
 export function RcaExecutiveSummary() {
+  const { scenario } = useActiveIncident()
+  const { incident } = scenario
+
   return (
-    <section id="rca-executive-summary" className="rounded-lg border border-[var(--p1)]/30 bg-[var(--p1)]/5 px-4 py-3 shadow-sm">
+    <section
+      id="rca-executive-summary"
+      className="rounded-lg border border-[var(--p1)]/30 bg-[var(--p1)]/5 px-4 py-3 shadow-sm"
+    >
       <div className="mb-1.5 flex items-center gap-2">
         <Target className="size-4 text-[var(--p1)]" />
         <div>
           <h2 className="text-sm font-semibold text-foreground">RCA Executive Summary</h2>
-          <p className="text-[10px] text-muted-foreground">根因分析执行摘要</p>
+          <p className="text-[10px] text-muted-foreground">根因分析执行摘要 · {scenario.domain}</p>
         </div>
       </div>
       <p className="text-[12px] leading-relaxed text-foreground">
         系统通过<strong className="text-[var(--p1)]">告警收敛</strong>、
         <strong>影响链路</strong>、<strong>时间关联</strong>和<strong>变更分析</strong>，
-        定位 <strong className="text-[var(--p1)]">UPS-A01 Battery Failure</strong> 为唯一根因。
+        定位 <strong className="text-[var(--p1)]">{incident.rootCause}</strong> 为
+        {incident.status === "Resolved" ? "已确认并恢复的根因" : "当前调查焦点"}。
+        业务影响：<strong>{incident.businessImpact}</strong>（{incident.affectedAssets}）。
       </p>
     </section>
   )
