@@ -2,45 +2,43 @@
 
 import { Suspense } from "react"
 import { AppShell } from "@/components/app-shell"
-import { RcaFunnel } from "@/components/rca/rca-funnel"
-import { TopologyGraph } from "@/components/rca/topology-graph"
-import { RcaExecutiveSummary } from "@/components/rca/rca-executive-summary"
 import { RcaIncidentContextBanner } from "@/components/rca/rca-incident-context-banner"
-import { IncidentTimeline } from "@/components/incident-timeline"
+import { ManualInvestigationWorkspace } from "@/components/rca/manual-investigation-workspace"
 import { PageQuestionBanner, StorylineStrip } from "@/components/page-question-banner"
 import { ContinueTo } from "@/components/page-flow"
 import { RcaPageSwitch } from "@/components/rca/rca-page-switch"
 
-function RcaAiPageContent() {
+function RcaManualPageContent() {
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col gap-4">
       <StorylineStrip activeStep={1} />
 
       <PageQuestionBanner
-        question="Why did it happen?"
-        questionZh="为什么发生？"
-        description="AI 自动根因分析：告警收敛、影响链路与时间线证据，回答故障成因与传播路径。"
+        question="How do operators investigate?"
+        questionZh="如何人工调查？"
+        description="人工调查工作台：按证据、拓扑与候选根因交叉验证，沉淀操作员结论与处置记录。"
       />
 
-      <RcaPageSwitch current="ai" />
+      <RcaPageSwitch current="manual" />
 
       <RcaIncidentContextBanner />
 
-      <RcaExecutiveSummary />
-      <RcaFunnel />
-      <TopologyGraph />
-      <IncidentTimeline />
+      <ManualInvestigationWorkspace />
 
       <ContinueTo label="AI 推理中心 · AI Explainability" href="/knowledge-center" />
     </div>
   )
 }
 
-export default function RcaPage() {
+export default function RcaManualPage() {
   return (
-    <AppShell active="rca-ai" title="AI 自动分析" subtitle="AI Auto Analysis · Why happened?">
+    <AppShell
+      active="rca-manual"
+      title="人工调查"
+      subtitle="Manual Investigation · Operator Workspace"
+    >
       <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>}>
-        <RcaAiPageContent />
+        <RcaManualPageContent />
       </Suspense>
     </AppShell>
   )

@@ -20,15 +20,15 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
     label: "Incident Portfolio",
     subtitle: "12 Open · 2 P1 · ¥12.3M Risk",
     href: "/",
-    highlightId: "active-incident-table",
+    highlightId: "digital-twin-map",
     durationMs: 5500,
   },
   {
     stage: 2,
-    label: "Active Incident Table",
+    label: "Recommended Actions",
     subtitle: `Select ${defaultIncident.id} · ${defaultIncident.title}`,
     href: "/",
-    highlightId: "active-incident-table",
+    highlightId: "recommended-actions",
     durationMs: 5500,
   },
   {

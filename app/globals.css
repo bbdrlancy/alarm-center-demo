@@ -179,6 +179,14 @@
   animation: dash-flow 1s linear infinite;
 }
 
+.twin-schematic {
+  background-color: #f4f7f5;
+  background-image:
+    linear-gradient(rgba(10, 47, 36, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 47, 36, 0.045) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 @keyframes fault-flow {
   0% { stroke-dashoffset: 24; opacity: 0.35; }
   50% { opacity: 1; }
