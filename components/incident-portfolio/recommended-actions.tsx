@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState, type DragEvent, type PointerEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowRight, ClipboardList, GripVertical, Sparkles } from "lucide-react"
 import {
@@ -11,9 +11,18 @@ import {
 } from "@/data/scenarios"
 import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import { PriorityBadge, Panel } from "@/components/primitives"
+import { priorityMeta } from "@/lib/incident-data"
 import { cn } from "@/lib/utils"
 
 type ActionStatus = RecommendedActionRow["status"]
+
+/** How the current demo scenario card is called out in Recommended Actions. */
+const ACTIVE_HIGHLIGHT = {
+  labelZh: "当前场景",
+  labelEn: "CURRENT",
+  dimOthers: 0.48,
+  leftBar: 4,
+} as const
 
 const STATUS_COLUMNS: {
   key: ActionStatus
@@ -51,6 +60,14 @@ export function RecommendedActions() {
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [overStatus, setOverStatus] = useState<ActionStatus | null>(null)
   const draggingIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const id = `action-card-${scenario.incident.id}`
+    const timer = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" })
+    }, 900)
+    return () => window.clearTimeout(timer)
+  }, [scenario.incident.id])
 
   const grouped = useMemo(() => {
     const map: Record<ActionStatus, RecommendedActionRow[]> = {
@@ -186,19 +203,38 @@ export function RecommendedActions() {
                   rows.map((row) => {
                     const isActive = row.incidentId === scenario.incident.id
                     const isDragging = draggingId === row.incidentId
+                    const tone = priorityMeta[row.priority]
                     return (
                       <article
                         key={row.incidentId}
+                        id={`action-card-${row.incidentId}`}
                         draggable
                         onDragStart={(event) => onDragStart(event, row.incidentId)}
                         onDragEnd={onDragEnd}
                         className={cn(
-                          "rounded-lg border border-border bg-card p-3 shadow-sm transition-opacity",
-                          isActive && "ring-1 ring-primary/30",
+                          "relative overflow-hidden rounded-lg border bg-card p-3 shadow-sm transition-all duration-300",
                           isDragging && "opacity-40",
                         )}
+                        style={
+                          isActive
+                            ? {
+                                borderColor: tone.color,
+                                backgroundColor: tone.bg,
+                                boxShadow: `0 0 0 2px ${tone.color}, 0 10px 24px ${tone.color}40`,
+                              }
+                            : {
+                                opacity: ACTIVE_HIGHLIGHT.dimOthers,
+                              }
+                        }
                       >
-                        <div className="flex items-start gap-2">
+                        {isActive ? (
+                          <span
+                            aria-hidden
+                            className="absolute inset-y-0 left-0"
+                            style={{ width: ACTIVE_HIGHLIGHT.leftBar, backgroundColor: tone.color }}
+                          />
+                        ) : null}
+                        <div className={cn("flex items-start gap-2", isActive && "pl-1.5")}>
                           <button
                             type="button"
                             aria-label={`Move ${row.incidentId}`}
@@ -215,6 +251,14 @@ export function RecommendedActions() {
                               <span className="font-mono text-[11px] font-semibold text-foreground">
                                 {row.incidentId}
                               </span>
+                              {isActive ? (
+                                <span
+                                  className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white"
+                                  style={{ backgroundColor: tone.color }}
+                                >
+                                  {ACTIVE_HIGHLIGHT.labelZh} · {ACTIVE_HIGHLIGHT.labelEn}
+                                </span>
+                              ) : null}
                             </div>
                             <p className="mt-1.5 text-[12px] font-medium leading-snug text-foreground">
                               {row.action}

@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { AlertTriangle, ArrowRight, Clock, Server, Target, TrendingDown, Zap } from "lucide-react"
 import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import { useCountUp } from "@/hooks/use-count-up"
+import { priorityMeta } from "@/lib/incident-data"
 
 function ConfidenceValue({ confidence }: { confidence: number }) {
   const { ref, display } = useCountUp(confidence, { duration: 1200, immediate: true })
@@ -43,20 +44,25 @@ function HeroField({
 export function IncidentHeroCard() {
   const { scenario } = useDemoScenario()
   const { incident } = scenario
+  const tone = priorityMeta[incident.severity]
 
   return (
     <section
       id="incident-hero-card"
-      className="relative w-full overflow-hidden rounded-xl border border-[var(--p1)]/35 bg-gradient-to-br from-[var(--p1)]/10 via-card to-accent/30 shadow-card"
+      className="relative w-full overflow-hidden rounded-xl border bg-card shadow-card"
+      style={{ borderColor: `${tone.color}59`, backgroundImage: `linear-gradient(to bottom right, ${tone.color}1a, var(--card), var(--accent))` }}
     >
-      <div className="absolute inset-x-0 top-0 h-1.5 bg-[var(--p1)]" />
-      <div className="absolute -right-20 -top-20 size-52 rounded-full bg-[var(--p1)]/8 blur-3xl" />
+      <div className="absolute inset-x-0 top-0 h-1.5" style={{ backgroundColor: tone.color }} />
+      <div className="absolute -right-20 -top-20 size-52 rounded-full blur-3xl" style={{ backgroundColor: `${tone.color}14` }} />
 
       <div className="relative px-4 py-4 sm:px-5 sm:py-5">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-2 rounded-md border border-[var(--p1)]/50 bg-[var(--p1)] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-sm">
+          <span
+            className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-sm"
+            style={{ borderColor: `${tone.color}80`, backgroundColor: tone.color }}
+          >
             <AlertTriangle className="size-3.5" />
-            {incident.severity} Critical Incident
+            {tone.label} Incident
           </span>
           <span className="text-[11px] text-muted-foreground">
             {incident.id} · {scenario.domain}
@@ -64,8 +70,8 @@ export function IncidentHeroCard() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <HeroField icon={Target} label="Root Cause · 根因" accent="text-[var(--p1)]">
-            {incident.rootCause}
+          <HeroField icon={Target} label="Root Cause · 根因">
+            <span style={{ color: tone.color }}>{incident.rootCause}</span>
           </HeroField>
 
           <HeroField icon={Zap} label="Affected Service · 受影响服务">
@@ -92,8 +98,8 @@ export function IncidentHeroCard() {
           <HeroField icon={TrendingDown} label="Alarm Reduction · 告警收敛">
             <span className="inline-flex flex-wrap items-center gap-2 tabular">
               <span>{incident.rawAlarms.toLocaleString()}</span>
-              <ArrowRight className="size-3.5 shrink-0 text-[var(--p1)]" />
-              <span className="text-[var(--p1)]">{incident.rootCauseCount}</span>
+              <ArrowRight className="size-3.5 shrink-0" style={{ color: tone.color }} />
+              <span style={{ color: tone.color }}>{incident.rootCauseCount}</span>
             </span>
           </HeroField>
         </div>

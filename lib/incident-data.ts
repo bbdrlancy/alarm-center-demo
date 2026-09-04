@@ -148,9 +148,9 @@ export const actionColumns = [
 export const teams = ["Power Team", "Facility Team", "IT Operations", "AI Platform Team"]
 
 export const priorityMeta: Record<Priority, { label: string; color: string; bg: string }> = {
-  P1: { label: "P1 Critical", color: "var(--p1)", bg: "rgba(229,57,53,0.14)" },
-  P2: { label: "P2 Major", color: "var(--p2)", bg: "rgba(251,140,0,0.14)" },
-  P3: { label: "P3 Minor", color: "var(--p3)", bg: "rgba(253,216,53,0.14)" },
+  P1: { label: "P1 Critical", color: "#e53935", bg: "rgba(229,57,53,0.14)" },
+  P2: { label: "P2 Major", color: "#fb8c00", bg: "rgba(251,140,0,0.14)" },
+  P3: { label: "P3 Minor", color: "#c9a227", bg: "rgba(201,162,39,0.16)" },
 }
 
 // ========================================================================

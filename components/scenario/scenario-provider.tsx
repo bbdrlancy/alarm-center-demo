@@ -46,7 +46,8 @@ function readStoredMode(): ScenarioMode {
 function applyTheme(scenario: ScenarioModel) {
   const root = document.documentElement
   root.style.setProperty("--scenario-accent", scenario.color)
-  root.style.setProperty("--p1", scenario.color)
+  // Alarm levels stay fixed: P1 red, P2 orange, P3 yellow — never follow domain color.
+  root.style.removeProperty("--p1")
   root.dataset.scenario = scenario.id
 }
 
