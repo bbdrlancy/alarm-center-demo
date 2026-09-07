@@ -47,7 +47,7 @@ const nav: NavItem[] = [
     en: "RCA Center",
     key: "rca",
     children: [
-      { icon: Bot, label: "AI 自动分析", en: "AI Auto Analysis", href: "/rca", key: "rca-ai" },
+      { icon: Bot, label: "自动分析", en: "Auto Analysis", href: "/rca", key: "rca-ai" },
       { icon: ClipboardList, label: "人工调查", en: "Manual Investigation", href: "/rca/manual", key: "rca-manual" },
     ],
   },

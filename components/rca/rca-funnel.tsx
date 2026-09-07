@@ -1,150 +1,198 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { Filter, ArrowDown } from "lucide-react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { ChevronRight, Filter } from "lucide-react"
 import { useDemoScenario } from "@/components/scenario/scenario-provider"
-import { Panel, ModuleConclusion } from "@/components/primitives"
-import { useCountUp } from "@/hooks/use-count-up"
-import { useInView } from "@/hooks/use-in-view"
-import { useSequentialStages } from "@/hooks/use-sequential-stages"
+import { Panel } from "@/components/primitives"
+import { useDemoStory } from "@/hooks/use-demo-story"
+import {
+  applyConvergenceRule,
+  CONVERGENCE_RULES,
+  getRootCauseItem,
+  getScenarioRawAlarms,
+  toRawItems,
+  type ConvergenceItem,
+} from "@/lib/alarm-convergence"
 import { cn } from "@/lib/utils"
+import type { AlarmSeverity } from "@/lib/incident-data"
 
-function deriveFunnelStages(raw: number, root: number) {
-  const afterNoise = Math.round(raw * 0.25)
-  const impactChain = Math.round(raw * 0.074)
-  const temporal = Math.max(root + 16, Math.round(raw * 0.014))
-  return [
-    { label: "Raw Alarms", zh: "原始告警", value: raw, width: 100 },
-    { label: "After Noise Filter", zh: "噪声过滤后", value: afterNoise, width: 82 },
-    { label: "Impact Chain", zh: "影响链路", value: impactChain, width: 68 },
-    { label: "Temporal Groups", zh: "时间关联", value: temporal, width: 48 },
-    { label: "Root Cause", zh: "根因", value: root, width: 24 },
-  ]
+const severityTone: Record<AlarmSeverity, { color: string; bg: string }> = {
+  Critical: { color: "#e53935", bg: "rgba(229,57,53,0.14)" },
+  Major: { color: "#fb8c00", bg: "rgba(251,140,0,0.14)" },
+  Minor: { color: "#c9a227", bg: "rgba(201,162,39,0.16)" },
+  Warning: { color: "#0078d4", bg: "rgba(0,120,212,0.14)" },
 }
 
-function StageNumber({ value, delay }: { value: number; delay?: number }) {
-  const { ref, display } = useCountUp(value, { duration: 1000, delay: delay ?? 0, immediate: true })
+function AlarmRow({ item }: { item: ConvergenceItem }) {
+  const tone = severityTone[item.severity]
   return (
-    <span ref={ref} className="tabular">
-      {display}
-    </span>
+    <li
+      className="rounded-md border border-border/80 bg-card px-2 py-1.5"
+      style={{ borderLeftColor: tone.color, borderLeftWidth: 3 }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[10px] text-muted-foreground">{item.time}</span>
+        <span
+          className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase"
+          style={{ color: tone.color, backgroundColor: tone.bg }}
+        >
+          {item.severity}
+        </span>
+      </div>
+      <div className="mt-0.5 truncate text-[11px] font-semibold text-foreground">{item.device}</div>
+      <div className="truncate font-mono text-[10px] text-muted-foreground">{item.title}</div>
+      <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-muted-foreground">{item.detail}</p>
+      <div className="mt-1 flex items-center justify-between gap-2">
+        {item.hint ? <span className="text-[9px] font-semibold text-primary">{item.hint}</span> : <span />}
+        {item.merged && item.merged > 1 ? (
+          <span className="text-[9px] font-semibold text-muted-foreground">归并 {item.merged} 条</span>
+        ) : null}
+      </div>
+    </li>
   )
 }
 
-function RateNumber({ rate, delay }: { rate: number; delay?: number }) {
-  const { ref, display } = useCountUp(rate, { duration: 1800, decimals: 2, delay: delay ?? 0, immediate: true })
+function Column({
+  title,
+  en,
+  count,
+  accent,
+  children,
+}: {
+  title: string
+  en: string
+  count: number
+  accent?: "raw" | "rule" | "root-p1" | "root-p2"
+  children: ReactNode
+}) {
   return (
-    <span ref={ref} className="tabular">
-      {display}
-    </span>
+    <section
+      className={cn(
+        "flex min-h-[520px] min-w-0 flex-col rounded-lg border bg-muted/20",
+        accent === "raw" && "border-primary/30 bg-primary/5",
+        accent === "rule" && "border-border bg-card",
+        accent === "root-p1" && "border-[#e53935]/45 bg-[#e53935]/6",
+        accent === "root-p2" && "border-[#fb8c00]/45 bg-[#fb8c00]/6",
+      )}
+    >
+      <header className="border-b border-border/70 px-3 py-2.5">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
+          <span className="tabular text-[14px] font-bold text-foreground">{count}</span>
+        </div>
+        <div className="text-[10px] text-muted-foreground">{en}</div>
+      </header>
+      {children}
+    </section>
   )
 }
 
 export function RcaFunnel() {
   const { scenario } = useDemoScenario()
-  const { incident } = scenario
-  const funnelStages = useMemo(
-    () => deriveFunnelStages(incident.rawAlarms, incident.rootCauseCount),
-    [incident.rawAlarms, incident.rootCauseCount],
-  )
-  const redundant = incident.rawAlarms - incident.rootCauseCount
+  const { stage, playing, runId } = useDemoStory()
+  const [ruleKey, setRuleKey] = useState(CONVERGENCE_RULES[0]!.key)
 
-  const { ref, inView } = useInView()
-  const { isReached, isCurrent, isFlowing } = useSequentialStages(funnelStages.length, {
-    enabled: inView,
-    stepDelay: 800,
-  })
-  const summaryActive = isReached(funnelStages.length - 1)
+  useEffect(() => {
+    setRuleKey(CONVERGENCE_RULES[0]!.key)
+  }, [scenario.id])
+
+  useEffect(() => {
+    if (stage !== 3 || !playing) return
+    let i = 0
+    setRuleKey(CONVERGENCE_RULES[0]!.key)
+    const timer = window.setInterval(() => {
+      i += 1
+      if (i < CONVERGENCE_RULES.length) setRuleKey(CONVERGENCE_RULES[i]!.key)
+    }, 1100)
+    return () => window.clearInterval(timer)
+  }, [stage, playing, runId])
+
+  const rawItems = useMemo(() => toRawItems(getScenarioRawAlarms(scenario)), [scenario])
+  const rule = CONVERGENCE_RULES.find((item) => item.key === ruleKey) ?? CONVERGENCE_RULES[0]!
+  const aggregated = useMemo(() => applyConvergenceRule(scenario, rule.key), [scenario, rule.key])
+  const root = useMemo(() => getRootCauseItem(scenario), [scenario])
+  const reduced = Math.max(0, rawItems.length - aggregated.length)
+  const rootAccent = scenario.incident.severity === "P1" ? "root-p1" : "root-p2"
+  const rootColor = scenario.incident.severity === "P1" ? "#e53935" : "#fb8c00"
 
   return (
     <Panel
       title="告警收敛漏斗"
       subtitle="Alarm Convergence Funnel"
-      description={`${incident.id} · ${scenario.domain} domain alarm reduction`}
+      description={`${scenario.incident.id} · 左侧全量原始告警，中间按所选规则聚合，右侧最终根因`}
       icon={<Filter className="size-4" />}
     >
-      <div ref={ref} className="grid gap-5 lg:grid-cols-[1fr_240px] lg:items-center">
-        <div className="flex flex-col items-center gap-1.5 py-2">
-          {funnelStages.map((s, i) => {
-            const isRoot = i === funnelStages.length - 1
-            const visible = isReached(i)
-            return (
-              <div
-                key={s.label}
-                className={cn("flex w-full flex-col items-center", visible ? "animate-funnel-enter" : "opacity-0")}
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <div
-                  className={cn(
-                    "flex items-center justify-between rounded-md px-4 py-3 transition-all duration-700",
-                    isRoot
-                      ? "glow-p1 border border-[var(--p1)]/50 bg-[var(--p1)]/18"
-                      : "border border-primary/25 bg-primary/10",
-                    isCurrent(i) && "scale-[1.02]",
-                  )}
-                  style={{
-                    width: visible ? `${s.width}%` : "20%",
-                    minWidth: 180,
-                    transitionProperty: "width, transform, box-shadow",
-                  }}
-                >
-                  <div className="min-w-0">
-                    <div className="text-[11px] text-muted-foreground">{s.zh}</div>
-                    <div className="truncate text-[13px] font-semibold text-foreground">{s.label}</div>
-                  </div>
-                  <span
-                    className="ml-3 text-2xl font-bold tabular leading-none"
-                    style={{ color: isRoot ? "var(--p1)" : "var(--primary)" }}
-                  >
-                    {visible ? <StageNumber value={s.value} delay={100} /> : null}
-                  </span>
-                </div>
-                {!isRoot ? (
-                  <ArrowDown
-                    className={cn(
-                      "my-0.5 size-4 transition-colors duration-300",
-                      isFlowing(i) ? "animate-pulse text-[var(--p1)]" : "text-primary/30",
-                    )}
-                  />
-                ) : null}
-              </div>
-            )
-          })}
-        </div>
-
-        <div
-          className={cn(
-            "flex flex-col items-center justify-center gap-3 rounded-lg border border-primary/30 bg-primary/8 p-6 text-center transition-opacity duration-500",
-            summaryActive ? "opacity-100" : "opacity-40",
-          )}
-        >
-          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            Reduction · 收敛率
+      <div className="mb-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+        <label className="text-[11px] font-semibold text-foreground" htmlFor="convergence-rule">
+          自动分析规则
+        </label>
+        <div className="mt-1.5 flex flex-col gap-2 lg:flex-row lg:items-start">
+          <select
+            id="convergence-rule"
+            value={rule.key}
+            onChange={(event) => setRuleKey(event.target.value)}
+            className="min-w-[240px] rounded-md border border-border bg-background px-2 py-1.5 text-[12px] font-semibold text-foreground"
+          >
+            {CONVERGENCE_RULES.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.zh} · {item.en}
+              </option>
+            ))}
+          </select>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] leading-snug text-muted-foreground">{rule.how}</p>
+            <p className="mt-1 text-[11px] font-semibold tabular text-foreground">
+              {rawItems.length} → {aggregated.length}
+              {reduced > 0 ? <span className="ml-1 text-[#fb8c00]">−{reduced}</span> : null}
+            </p>
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-5xl font-extrabold text-primary">
-              {summaryActive ? <RateNumber rate={incident.reductionRate} delay={200} /> : incident.reductionRate}
-            </span>
-            <span className="text-2xl font-bold text-primary">%</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="rounded-md bg-card px-2.5 py-1 font-semibold tabular text-foreground">
-              {summaryActive ? <StageNumber value={incident.rawAlarms} /> : incident.rawAlarms.toLocaleString()}
-            </span>
-            <ArrowDown className="size-4 -rotate-90 text-primary" />
-            <span className="rounded-md bg-[var(--p1)]/15 px-2.5 py-1 font-bold tabular text-[var(--p1)]">
-              {summaryActive ? <StageNumber value={incident.rootCauseCount} delay={400} /> : incident.rootCauseCount}
-            </span>
-          </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            {redundant.toLocaleString()} 条冗余告警被自动收敛，运维仅需关注{" "}
-            <span className="font-medium text-primary">{incident.rootCauseCount}</span> 个可执行根因。
-          </p>
         </div>
       </div>
-      <ModuleConclusion>
-        {incident.alarmReduction} · {incident.rcaSummary}
-      </ModuleConclusion>
+
+      <div id="correlation-pipeline" className="grid items-stretch gap-3 lg:grid-cols-[1.05fr_24px_1.2fr_24px_0.9fr]">
+        <Column title="原始告警" en="Raw Alarms · Full set" count={rawItems.length} accent="raw">
+          <ul className="flex max-h-[560px] flex-1 flex-col gap-1.5 overflow-y-auto p-2">
+            {rawItems.map((item) => (
+              <AlarmRow key={item.id} item={item} />
+            ))}
+          </ul>
+        </Column>
+
+        <div className="hidden flex-col items-center justify-center lg:flex">
+          <ChevronRight className="size-5 text-primary" />
+          <span className="mt-1 text-[9px] font-semibold text-muted-foreground">规则</span>
+        </div>
+
+        <Column title={rule.zh} en={rule.en} count={aggregated.length} accent="rule">
+          <ul className="flex max-h-[560px] flex-1 flex-col gap-1.5 overflow-y-auto p-2">
+            {aggregated.map((item) => (
+              <AlarmRow key={item.id} item={item} />
+            ))}
+          </ul>
+        </Column>
+
+        <div className="hidden flex-col items-center justify-center lg:flex">
+          <ChevronRight className="size-5" style={{ color: rootColor }} />
+          <span className="mt-1 text-[9px] font-semibold text-muted-foreground">根因</span>
+        </div>
+
+        <Column title="最终根因" en="Root Cause" count={1} accent={rootAccent}>
+          <div className="flex flex-1 flex-col gap-2 p-3">
+            <div className="rounded-lg border bg-card p-3" style={{ borderColor: `${rootColor}66` }}>
+              <div className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: rootColor }}>
+                {scenario.incident.severity} · {scenario.incident.confidence}% 置信度
+              </div>
+              <div className="mt-1 text-[14px] font-bold text-foreground">{root.title}</div>
+              <div className="mt-0.5 text-[12px] text-muted-foreground">{scenario.incident.rootCauseZh}</div>
+              <div className="mt-2 font-mono text-[11px] text-foreground">{root.device}</div>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{root.detail}</p>
+            </div>
+            <p className="text-[10px] leading-snug text-muted-foreground">
+              根因不随中间规则切换改变：各规则只展示该规则对全量告警的聚合效果，最终结论由因果推理给出。
+            </p>
+          </div>
+        </Column>
+      </div>
     </Panel>
   )
 }
