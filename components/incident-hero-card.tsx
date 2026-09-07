@@ -70,15 +70,15 @@ export function IncidentHeroCard() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <HeroField icon={Target} label="Root Cause · 根因">
+          <HeroField icon={Target} label="根因 · Root Cause">
             <span style={{ color: tone.color }}>{incident.rootCause}</span>
           </HeroField>
 
-          <HeroField icon={Zap} label="Affected Service · 受影响服务">
+          <HeroField icon={Zap} label="受影响服务 · Affected Service">
             {incident.businessImpact}
           </HeroField>
 
-          <HeroField icon={Server} label="Affected Assets · 受影响资产">
+          <HeroField icon={Server} label="受影响资产 · Affected Assets">
             <span className="block">{incident.affectedAssets}</span>
             {incident.affectedGpu > 0 ? (
               <span className="block text-[13px] font-medium text-muted-foreground">
@@ -87,15 +87,15 @@ export function IncidentHeroCard() {
             ) : null}
           </HeroField>
 
-          <HeroField icon={Target} label="Confidence · 置信度" accent="text-primary">
+          <HeroField icon={Target} label="置信度 · Confidence" accent="text-primary">
             <ConfidenceValue confidence={incident.confidence} />
           </HeroField>
 
-          <HeroField icon={Clock} label="Analysis Time · 分析用时">
+          <HeroField icon={Clock} label="分析用时 · Analysis Time">
             {incident.analysisTime}
           </HeroField>
 
-          <HeroField icon={TrendingDown} label="Alarm Reduction · 告警收敛">
+          <HeroField icon={TrendingDown} label="告警收敛 · Alarm Reduction">
             <span className="inline-flex flex-wrap items-center gap-2 tabular">
               <span>{incident.rawAlarms.toLocaleString()}</span>
               <ArrowRight className="size-3.5 shrink-0" style={{ color: tone.color }} />

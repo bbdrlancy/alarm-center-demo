@@ -62,51 +62,51 @@ export function PortfolioHero() {
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary">
             <Sparkles className="size-3.5" />
-            Incident Portfolio · 全局事故视图
+            全局事故视图 · Incident Portfolio
           </span>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
           <KpiCard
             value={portfolioSummary.openIncidents}
-            label="Open Incidents"
-            sublabel="进行中事故"
+            label="进行中事故"
+            sublabel="Open Incidents"
           />
           <KpiCard
             value={portfolioSummary.p1Critical}
-            label="P1 Critical"
-            sublabel="严重事故"
+            label="严重事故"
+            sublabel="P1 Critical"
             accent="text-[var(--p1)]"
           />
           <KpiCard
             value={portfolioSummary.p2Major}
-            label="P2 Major"
-            sublabel="重大事故"
+            label="重大事故"
+            sublabel="P2 Major"
             accent="text-[var(--p2)]"
           />
           <KpiCard
             value={portfolioSummary.p3Minor}
-            label="P3 Minor"
-            sublabel="一般事故"
+            label="一般事故"
+            sublabel="P3 Minor"
             accent="text-[var(--p3)]"
           />
           <KpiCard
             value={portfolioSummary.affectedAssets}
-            label="Affected Assets"
-            sublabel="受影响资产"
+            label="受影响资产"
+            sublabel="Affected Assets"
           />
           <KpiCard
             value={portfolioSummary.protectedServices}
-            label="Protected Services"
-            sublabel="受保护服务"
+            label="受保护服务"
+            sublabel="Protected Services"
             accent="text-success"
           />
           <KpiCard
             value={portfolioSummary.estimatedBusinessRisk}
             prefix="¥"
             suffix="M"
-            label="Business Risk"
-            sublabel="预估业务风险"
+            label="预估业务风险"
+            sublabel="Business Risk"
             decimals={1}
             accent="text-[var(--p1)]"
           />

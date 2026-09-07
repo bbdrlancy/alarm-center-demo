@@ -58,27 +58,27 @@ function ExplainabilitySection() {
 export function ExpertExplainabilityFlow() {
   return (
     <>
-      <ExplainStep step={1} title="Digital Twin" subtitle="数字孪生" question="影响在哪里？">
+      <ExplainStep step={1} title="数字孪生" subtitle="Digital Twin" question="影响在哪里？">
         <SpatialModel />
       </ExplainStep>
 
-      <ExplainStep step={2} title="Ontology" subtitle="企业本体" question="AI 如何理解世界？">
+      <ExplainStep step={2} title="企业本体" subtitle="Ontology" question="AI 如何理解世界？">
         <EnterpriseOntology />
       </ExplainStep>
 
-      <ExplainStep step={3} title="Knowledge Graph" subtitle="知识图谱" question="AI 知道了什么？">
+      <ExplainStep step={3} title="知识图谱" subtitle="Knowledge Graph" question="AI 知道了什么？">
         <KnowledgeGraph />
       </ExplainStep>
 
-      <ExplainStep step={4} title="GraphRAG" subtitle="图谱增强推理" question="AI 如何推理？">
+      <ExplainStep step={4} title="图谱增强推理" subtitle="GraphRAG" question="AI 如何推理？">
         <GraphragReasoning />
       </ExplainStep>
 
-      <ExplainStep step={5} title="Knowledge Sources" subtitle="知识来源" question="AI 依据哪些知识？">
+      <ExplainStep step={5} title="知识来源" subtitle="Knowledge Sources" question="AI 依据哪些知识？">
         <CopilotKnowledgeSource />
       </ExplainStep>
 
-      <ExplainStep step={6} title="Explainability" subtitle="可解释性" question="为什么是这个根因？">
+      <ExplainStep step={6} title="可解释性" subtitle="Explainability" question="为什么是这个根因？">
         <ExplainabilitySection />
       </ExplainStep>
     </>

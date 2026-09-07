@@ -43,7 +43,7 @@ export function PlatformValueSection() {
       >
         <div className="rounded-lg border border-primary/25 bg-primary/6 px-4 py-3">
           <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-            Platform ROI · 平台年投资回报
+            平台年投资回报 · Platform ROI
           </div>
           <div className="mt-1 flex flex-wrap items-baseline gap-3">
             <span className="text-3xl font-extrabold tabular text-success">¥{pv.annualRoi}M</span>

@@ -156,8 +156,8 @@ export function RecommendedActions() {
 
   return (
     <Panel
-      title="Recommended Actions"
-      subtitle="建议操作"
+      title="建议操作"
+      subtitle="Recommended Actions"
       icon={<ClipboardList className="size-4" />}
       bodyClassName="p-3"
     >

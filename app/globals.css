@@ -74,6 +74,11 @@
   --elevated: #ffffff;
   --kpi: #0a2f24;
 
+  --text-l1: #0a2f24;
+  --text-l2: #2d5648;
+  --text-l3: #5a7268;
+  --text-l4: #8fa39a;
+
   --primary: #3dcd58;
   --primary-foreground: #ffffff;
 
@@ -142,6 +147,18 @@
   }
   .text-kpi {
     color: var(--kpi);
+  }
+  .text-l1 {
+    color: var(--text-l1);
+  }
+  .text-l2 {
+    color: var(--text-l2);
+  }
+  .text-l3 {
+    color: var(--text-l3);
+  }
+  .text-l4 {
+    color: var(--text-l4);
   }
   .text-success {
     color: var(--primary);
@@ -275,24 +292,24 @@
 }
 .conv-pulse-track {
   width: 100%;
-  height: 2px;
+  height: 1px;
   background-image: repeating-linear-gradient(
     90deg,
     #3dcd58 0 8px,
     transparent 8px 12px
   );
-  background-size: 20px 2px;
-  animation: conv-track-slide 0.7s linear infinite;
+  background-size: 20px 1px;
+  animation: conv-track-slide 2.8s linear infinite;
 }
 .conv-pulse-particle {
   position: absolute;
   left: 0;
-  width: 7px;
-  height: 7px;
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
   background: #3dcd58;
-  box-shadow: 0 0 8px rgba(61, 205, 88, 0.85);
-  animation: conv-particle 1.35s ease-in-out infinite;
+  box-shadow: 0 0 4px rgba(61, 205, 88, 0.7);
+  animation: conv-particle 5.4s ease-in-out infinite;
 }
 .conv-pulse-head {
   position: absolute;
@@ -322,6 +339,31 @@
 @keyframes gauge-pulse {
   0%, 100% { filter: drop-shadow(0 0 0 transparent); }
   50% { filter: drop-shadow(0 0 6px rgba(61, 205, 88, 0.35)); }
+}
+@keyframes pipeline-dash {
+  to { stroke-dashoffset: -20; }
+}
+.pipeline-line {
+  fill: none;
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pipeline-line-on {
+  stroke: #67e8f9;
+  stroke-dasharray: 4 3;
+  animation: pipeline-dash 4.4s linear infinite;
+  filter: drop-shadow(0 0 2px rgba(103, 232, 249, 0.35));
+}
+.pipeline-line-off {
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-dasharray: 3 5;
+}
+.pipeline-board {
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 .animate-gauge-pulse {
   animation: gauge-pulse 2s ease-in-out infinite;

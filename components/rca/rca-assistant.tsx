@@ -103,7 +103,7 @@ export function RcaAssistant() {
           <div>
             <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <ShieldCheck className="size-3.5 text-primary" />
-              Preventive Actions · 预防措施
+              预防措施 · Preventive Actions
             </h3>
             <div className="flex flex-col gap-1.5">
               {preventiveActions.map((p) => (

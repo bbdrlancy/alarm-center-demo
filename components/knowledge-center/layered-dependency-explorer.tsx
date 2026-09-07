@@ -68,15 +68,15 @@ function TopologyNodeDetail({
         </button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <DetailBlock title="Location · 位置" items={[d.location]} />
-        <DetailBlock title="Dependencies · 依赖" items={d.dependencies} />
-        <DetailBlock title="Impacts · 影响" items={d.impacts} />
-        <DetailBlock title="Alarms · 告警" items={d.relatedAlarms} />
-        <DetailBlock title="Incident · 故障" items={d.relatedIncidents} />
-        <DetailBlock title="Runbooks · 手册" items={d.relatedRunbooks} />
+        <DetailBlock title="位置 · Location" items={[d.location]} />
+        <DetailBlock title="依赖 · Dependencies" items={d.dependencies} />
+        <DetailBlock title="影响 · Impacts" items={d.impacts} />
+        <DetailBlock title="告警 · Alarms" items={d.relatedAlarms} />
+        <DetailBlock title="故障 · Incident" items={d.relatedIncidents} />
+        <DetailBlock title="手册 · Runbooks" items={d.relatedRunbooks} />
         <div className="sm:col-span-2">
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Graph Neighbors · 图谱邻居
+            图谱邻居 · Graph Neighbors
           </div>
           <div className="flex flex-wrap gap-1">
             {d.graphNeighbors.map((n) => (
@@ -177,7 +177,7 @@ function IncidentImpactOverlay() {
     <div className="rounded-lg border border-[var(--p1)]/35 bg-[var(--p1)]/5 px-3 py-2.5">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-[10px] font-semibold text-[var(--p1)]">
-          Incident Impact Overlay · 事故影响叠加
+          事故影响叠加 · Incident Impact Overlay
         </span>
         <span className="rounded bg-[var(--p1)]/15 px-1.5 py-0.5 text-[9px] font-medium text-[var(--p1)]">
           Root Cause: UPS-A01
@@ -213,7 +213,7 @@ export function LayeredDependencyExplorer() {
     <Panel
       title="分层依赖探索器"
       subtitle="Layered Dependency Explorer"
-      description="Topology Compare View · 三列并排对比供电、制冷与业务依赖链"
+      description="拓扑对比视图 · Topology Compare View：三列并排对比供电、制冷与业务依赖链"
       icon={<Layers className="size-4" />}
       action={
         <span className="inline-flex items-center gap-1 rounded-md bg-primary/12 px-2 py-1 text-[10px] font-medium text-primary">

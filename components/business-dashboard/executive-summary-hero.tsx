@@ -54,7 +54,10 @@ export function ExecutiveSummaryHero() {
               <TrendingUp className="size-6" />
             </span>
             <div>
-              <h2 className="text-xl font-bold text-foreground md:text-2xl">Business Value Delivered</h2>
+              <h2 className="text-xl font-bold text-foreground md:text-2xl">已交付业务价值</h2>
+              <p className="mt-1 text-[12px] font-medium text-primary md:text-sm">
+                Business Value Delivered
+              </p>
               <p className="text-[12px] font-medium text-primary md:text-sm">
                 {scenario.name} · {incident.id}
               </p>
@@ -77,36 +80,36 @@ export function ExecutiveSummaryHero() {
           <HeroMetric
             value={businessValue.reductionRate}
             suffix="%"
-            label="Alarm Reduction"
-            sublabel="告警收敛率"
+            label="告警收敛率"
+            sublabel="Alarm Reduction"
             accent="text-[var(--p1)]"
             decimals={2}
           />
           <HeroMetric
             value={businessValue.automationRate}
             suffix="%"
-            label="Automated Handling"
-            sublabel="自动化处置率"
+            label="自动化处置率"
+            sublabel="Automated Handling"
           />
           <HeroMetric
             value={businessValue.efficiencyGain}
             suffix="×"
-            label="Faster RCA"
-            sublabel="根因分析提速"
+            label="根因分析提速"
+            sublabel="Faster RCA"
           />
           <HeroMetric
             value={businessValue.annualRoi}
             prefix="¥"
             suffix="M"
-            label="Annual ROI"
-            sublabel="年投资回报"
+            label="年投资回报"
+            sublabel="Annual ROI"
             decimals={1}
             accent="text-success"
           />
           <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/6 px-3 py-4 sm:col-span-2 lg:col-span-1">
             <Clock className="size-5 text-primary" />
             <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              MTTR Reduced · 平均修复时间
+              MTTR 降低 · MTTR Reduced
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 tabular">
               <span className="text-xl font-extrabold text-muted-foreground sm:text-2xl">{businessValue.mttrBefore}</span>

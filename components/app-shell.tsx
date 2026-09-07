@@ -162,11 +162,13 @@ export function AppShell({
   active = "command",
   title = "事故处置中心",
   subtitle = "Incident Command Center",
+  hideDemoControls = false,
 }: {
   children: React.ReactNode
   active?: string
   title?: string
   subtitle?: string
+  hideDemoControls?: boolean
 }) {
   return (
     <div className="flex min-h-screen bg-background">
@@ -242,9 +244,9 @@ export function AppShell({
             <Settings className="size-4" />
           </button>
 
-          <ScenarioSwitcher />
+          {hideDemoControls ? null : <ScenarioSwitcher />}
 
-          <DemoStoryStartButton />
+          {hideDemoControls ? null : <DemoStoryStartButton />}
 
           <div className="grid size-9 place-items-center rounded-md bg-secondary text-xs font-semibold text-secondary-foreground">
             OP

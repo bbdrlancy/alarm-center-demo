@@ -1,5 +1,5 @@
 /** Incident Portfolio / Digital Twin revision. Tell the assistant “回退到 DTn” to restore. */
-export const DIGITAL_TWIN_VERSION = "DT18"
+export const DIGITAL_TWIN_VERSION = "DT35"
 
 export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT1", note: "浅色 SVG 流程图" },
@@ -20,4 +20,21 @@ export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT16", note: "RCA 顶部融合为 Incident Overview：KPI + 传播链 + 证据卡 + 事故故事时间线" },
   { id: "DT17", note: "根因路径恢复数字孪生叠加风格：跳数条 + 拓扑标注传播链路" },
   { id: "DT18", note: "去掉路径跳数框图；Overview 拆成根因汇总+建议行动；故事时间线提前" },
+  { id: "DT19", note: "RCA 信息只出现一次：KPI 结论、可视化故事、Flow 贡献度、Rules 去事件列表" },
+  { id: "DT20", note: "点 Flow 同时联动规则详情；去掉独立 Convergence Rules 区块" },
+  { id: "DT21", note: "去掉 Rule Detail；页面双语标题统一为中文为主、英文为辅" },
+  { id: "DT22", note: "人工调查改为调查员工作台：事件确认、候选、影响、时间线、设备证据、原始告警、排查路径" },
+  { id: "DT23", note: "人工调查按 Detect / Impact / Locate / Cause 组织，影响与定位复用首页数字孪生" },
+  { id: "DT24", note: "人工调查全量事件清单、规则聚合预览与独立 AI Chat 对话框，不受 Demo Scenario 切换" },
+  { id: "DT25", note: "人工调查顶部全量数字孪生 + 原始告警清单；点选告警标注位置与可能影响路径" },
+  { id: "DT26", note: "人工调查孪生图去掉域事故聚合标注；AI 分析探索固定为页内联动对话" },
+  { id: "DT27", note: "人工调查原始告警增加时间范围过滤，并支持勾选批次后预览收敛效果" },
+  { id: "DT28", note: "人工调查 Batch Convergence 改为策略模拟器：漏斗、四策略对比、规则贡献与告警血缘" },
+  { id: "DT29", note: "收敛模拟器内置降噪/关系/场景管道，勾选方法后按固定路径给出所选收敛效果" },
+  { id: "DT30", note: "收敛管道改为自上而下流程图：分叉汇聚、步骤编号与白话说明" },
+  { id: "DT31", note: "流程图流动线减半；规则贡献改为按分支讲识别结果，不再用 Input/Output 表" },
+  { id: "DT32", note: "规则识别展开改为事件明细表，同设备用稳定色条分组便于核对震荡/重复" },
+  { id: "DT33", note: "流程图亮色流动线速度降至约 1/4，便于顺着路径看" },
+  { id: "DT34", note: "人工调查去掉发现问题、理解影响两个模块" },
+  { id: "DT35", note: "人工调查 AI 分析探索支持左右展开 / 收起" },
 ] as const

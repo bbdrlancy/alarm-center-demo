@@ -42,6 +42,7 @@ export type ConvergenceRule = {
   zh: string
   en: string
   how: string
+  reason: string
 }
 
 export const RULE_SPECS: Record<string, { conditions: string[]; window?: string }> = {
@@ -78,42 +79,49 @@ export const CONVERGENCE_RULES: ConvergenceRule[] = [
     zh: "噪声抑制",
     en: "Noise Filter",
     how: "去掉 Warning / 闪断噪声，使其不进入后续聚合与因果链。",
+    reason: "噪声不进入根因候选。",
   },
   {
     key: "topology",
     zh: "依赖关联",
     en: "Correlation Analysis",
     how: "沿供电 / 制冷 / 存储 / 网络依赖链保留因果跳数上的告警，并按跳数归并为链路节点。",
+    reason: "只保留依赖链上的候选原因。",
   },
   {
     key: "spatial",
     zh: "空间关联",
     en: "Spatial Correlation",
     how: "按机房区域 / 机柜簇聚合，同一空间内的同源症状合并。",
+    reason: "同区域同源症状合并为一条。",
   },
   {
     key: "temporal",
     zh: "时间关联",
     en: "Temporal Correlation",
     how: "按级联时间窗对齐：源头窗口 → 下游窗口，窗口内告警归并。",
+    reason: "同一时间窗内的级联告警归并。",
   },
   {
     key: "pattern",
     zh: "模式识别",
     en: "Pattern Matching",
     how: "匹配历史故障指纹：根因设备症状为一组，下游业务影响为另一组。",
+    reason: "历史指纹匹配后归并为根因组。",
   },
   {
     key: "cluster",
     zh: "风暴归并",
     en: "Storm Collapse",
     how: "同一告警码在兄弟设备上的风暴折叠为 1 条聚合告警。",
+    reason: "同类设备风暴折叠为一条问题。",
   },
   {
     key: "causal",
     zh: "根因分析",
     en: "Root Cause Analysis",
     how: "最早出现在拓扑源头、且能解释全部下游级联的告警，定位为唯一根因。",
+    reason: "唯一源头确定，下游不再并列根因。",
   },
 ]
 
@@ -911,11 +919,32 @@ function applyCausal(alarms: TaggedAlarm[], scenario: ScenarioModel): Convergenc
   ]
 }
 
-export function applyConvergenceRule(
-  scenario: ScenarioModel,
+function applyCausalSelection(alarms: TaggedAlarm[], scenario: ScenarioModel): ConvergenceItem[] {
+  const rootAlarms = alarms.filter((a) => a.role === "root-symptom").sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+  if (rootAlarms.length > 0) return applyCausal(alarms, scenario)
+  const first = [...alarms].sort((a, b) => a.timestamp.localeCompare(b.timestamp))[0]
+  if (!first) return []
+  const cascadeCount = alarms.filter((a) => a.role === "cascade").length
+  return [
+    {
+      id: `causal-sel-${scenario.incident.id}-${first.id}`,
+      time: first.timestamp,
+      title: first.device,
+      detail: `所选告警中没有源头症状。按最早告警 ${first.device} / ${first.code} 作为候选；下游级联 ${cascadeCount} 条。`,
+      device: first.device,
+      severity: first.severity,
+      hint: "候选根因",
+      merged: alarms.length,
+      members: alarms.map((a) => a.id),
+    },
+  ]
+}
+
+export function applyConvergenceRuleToAlarms(
+  alarms: TaggedAlarm[],
   ruleKey: string,
+  scenario: ScenarioModel,
 ): ConvergenceItem[] {
-  const alarms = getScenarioRawAlarms(scenario)
   switch (ruleKey) {
     case "noise":
       return applyNoise(alarms)
@@ -930,10 +959,17 @@ export function applyConvergenceRule(
     case "cluster":
       return applyCluster(alarms)
     case "causal":
-      return applyCausal(alarms, scenario)
+      return applyCausalSelection(alarms, scenario)
     default:
       return alarms.map((a) => toItem(a))
   }
+}
+
+export function applyConvergenceRule(
+  scenario: ScenarioModel,
+  ruleKey: string,
+): ConvergenceItem[] {
+  return applyConvergenceRuleToAlarms(getScenarioRawAlarms(scenario), ruleKey, scenario)
 }
 
 export function getRootCauseItem(scenario: ScenarioModel): ConvergenceItem {
@@ -953,6 +989,7 @@ export type RuleFlowNode = {
   zh: string
   en: string
   how: string
+  reason: string
   input: number
   output: number
   reduced: number
@@ -1021,6 +1058,7 @@ export type FlowStage = {
   input: number
   output: number
   reduced: number
+  ratio: number
   contribution: number
   ruleKey: string | null
   ruleName: string
@@ -1046,6 +1084,10 @@ export type EventRow = {
   reasons?: string[]
   window?: string
   alarmId?: string
+  scenarioKey?: ScenarioKey
+  incidentId?: string
+  domain?: string
+  incidentTitle?: string
 }
 
 export type ConvergenceFlow = {
@@ -1124,6 +1166,7 @@ function toRuleNode(
     zh: meta.zh,
     en: meta.en,
     how: meta.how,
+    reason: meta.reason,
     input,
     output,
     reduced,
@@ -1365,6 +1408,7 @@ export function buildConvergenceFlow(scenario: ScenarioModel): ConvergenceFlow {
         input: rawCount,
         output: rawCount,
         reduced: 0,
+        ratio: 0,
         contribution: 0,
         ruleKey: null,
         ruleName: "Ingest",
@@ -1379,6 +1423,7 @@ export function buildConvergenceFlow(scenario: ScenarioModel): ConvergenceFlow {
         input: rawCount,
         output: afterNoise.length,
         reduced: noiseNode.reduced,
+        ratio: noiseNode.ratio,
         contribution: noiseNode.contribution,
         ruleKey: "noise",
         ruleName: noiseNode.en,
@@ -1393,6 +1438,7 @@ export function buildConvergenceFlow(scenario: ScenarioModel): ConvergenceFlow {
         input: afterNoise.length,
         output: afterClusterCount,
         reduced: clusterNode.reduced,
+        ratio: clusterNode.ratio,
         contribution: clusterNode.contribution,
         ruleKey: "cluster",
         ruleName: clusterNode.en,
@@ -1407,6 +1453,7 @@ export function buildConvergenceFlow(scenario: ScenarioModel): ConvergenceFlow {
         input: afterClusterCount,
         output: afterTopoCount,
         reduced: topologyNode.reduced,
+        ratio: topologyNode.ratio,
         contribution: topologyNode.contribution,
         ruleKey: "topology",
         ruleName: topologyNode.en,
@@ -1421,6 +1468,7 @@ export function buildConvergenceFlow(scenario: ScenarioModel): ConvergenceFlow {
         input: afterTopoCount,
         output: 1,
         reduced: causalNode.reduced,
+        ratio: causalNode.ratio,
         contribution: causalNode.contribution,
         ruleKey: "causal",
         ruleName: causalNode.en,

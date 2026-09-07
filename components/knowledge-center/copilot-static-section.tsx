@@ -36,8 +36,8 @@ export function CopilotStaticSection() {
   return (
     <section id="copilot-static-section" className="hidden print:block">
       <Panel
-        title="Ask Copilot"
-        subtitle={`AIOps Copilot · ${scenario.name}`}
+        title="向 Copilot 提问"
+        subtitle={`Ask Copilot · ${scenario.name}`}
         description="基于当前场景数据提供可解释分析与处置建议"
         icon={<Sparkles className="size-4" />}
         bodyClassName="space-y-4"
@@ -45,7 +45,7 @@ export function CopilotStaticSection() {
         <div className="rounded-lg border border-border bg-panel/60 px-4 py-3">
           <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold text-foreground">
             <Bot className="size-3.5 text-primary" />
-            Ask Copilot · 向 Copilot 提问
+            向 Copilot 提问 · Ask Copilot
           </div>
           <div className="rounded-md border border-dashed border-border bg-card px-3 py-2.5 text-[11px] text-muted-foreground">
             输入问题… · Type your question about {scenario.domain} incident {scenario.incident.id}
@@ -62,7 +62,7 @@ export function CopilotStaticSection() {
         <div>
           <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-foreground">
             <MessageSquare className="size-3.5 text-primary" />
-            Suggested Questions · 建议问题
+            建议问题 · Suggested Questions
           </div>
           <div className="flex flex-wrap gap-1.5">
             {copilotPrintExamples.map(({ question }) => (
@@ -78,7 +78,7 @@ export function CopilotStaticSection() {
 
         <div>
           <div className="mb-3 text-[11px] font-semibold text-foreground">
-            Example Answers · 示例回答
+            示例回答 · Example Answers
           </div>
           <div className="flex flex-col gap-3">
             {copilotPrintExamples.map(({ question, answer }) => (

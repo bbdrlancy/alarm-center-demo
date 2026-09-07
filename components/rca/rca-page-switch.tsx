@@ -28,8 +28,8 @@ export function RcaPageSwitch({ current }: { current: "ai" | "manual" }) {
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {item.label}
-              <span className="ml-1 hidden font-normal opacity-80 sm:inline">{item.zh}</span>
+              {item.zh}
+              <span className="ml-1 hidden font-normal opacity-80 sm:inline">{item.label}</span>
             </Link>
           )
         })}

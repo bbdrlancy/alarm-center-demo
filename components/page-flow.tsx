@@ -100,7 +100,7 @@ export function ContinueTo({
 export function OpenCopilotContinue() {
   return (
     <ContinueTo
-      label="Copilot Assistant"
+      label="向 Copilot 提问 · Copilot Assistant"
       onClick={() => window.dispatchEvent(new CustomEvent("open-copilot"))}
     />
   )
@@ -108,16 +108,19 @@ export function OpenCopilotContinue() {
 
 export function StorylineStrip() {
   const steps = [
-    "Incident Portfolio",
-    "RCA Center",
-    "AI Explainability",
-    "Business Value",
+    { zh: "事故组合", en: "Portfolio" },
+    { zh: "根因分析", en: "RCA" },
+    { zh: "AI 推理", en: "Explainability" },
+    { zh: "业务价值", en: "Value" },
   ]
   return (
     <div className="flex flex-wrap items-center justify-center gap-1 rounded-lg border border-border/60 bg-background/50 px-3 py-2 text-[9px] text-muted-foreground">
       {steps.map((s, i) => (
-        <span key={s} className="flex items-center gap-1">
-          <span>{s}</span>
+        <span key={s.en} className="flex items-center gap-1">
+          <span>
+            {s.zh}
+            <span className="ml-1 opacity-70">{s.en}</span>
+          </span>
           {i < steps.length - 1 ? <ArrowRight className="size-2.5 opacity-50" /> : null}
         </span>
       ))}

@@ -16,11 +16,11 @@ type DetailTab = "spatial" | "topology" | "knowledge"
 
 function SpatialContextView({ ctx }: { ctx: SpatialContext }) {
   const rows: { key: keyof SpatialContext; label: string }[] = [
-    { key: "building", label: "Building · 楼栋" },
-    { key: "floor", label: "Floor · 楼层" },
-    { key: "zone", label: "Zone · 区域" },
-    { key: "room", label: "Room · 机房" },
-    { key: "rack", label: "Rack · 机架" },
+    { key: "building", label: "楼栋 · Building" },
+    { key: "floor", label: "楼层 · Floor" },
+    { key: "zone", label: "区域 · Zone" },
+    { key: "room", label: "机房 · Room" },
+    { key: "rack", label: "机架 · Rack" },
   ]
   return (
     <div className="space-y-1.5">
@@ -192,7 +192,7 @@ export function NodeDrillDownPanel({
           <div className="space-y-3">
             <div>
               <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Graph Neighbors · 关系类型
+                关系类型 · Graph Neighbors
               </div>
               <div className="space-y-1">
                 {d.graphNeighbors.map((n) => (

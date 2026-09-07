@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
+import { usePathname } from "next/navigation"
 import { Send, Sparkles, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemoScenario } from "@/components/scenario/scenario-provider"
@@ -38,6 +39,8 @@ function renderMessage(content: string) {
 }
 
 export function AiopsCopilot() {
+  const pathname = usePathname()
+  const hidden = pathname === "/rca/manual"
   const { scenario } = useDemoScenario()
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState("")
@@ -94,6 +97,8 @@ export function AiopsCopilot() {
     },
     [typing, scenario],
   )
+
+  if (hidden) return null
 
   return (
     <div className="no-print">

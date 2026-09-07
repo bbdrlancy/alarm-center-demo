@@ -21,7 +21,7 @@ export function CrossLayerView({
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="mb-2">
-        <div className="text-[11px] font-semibold text-foreground">Cross Layer View · 跨层关系视图</div>
+        <div className="text-[11px] font-semibold text-foreground">跨层关系视图 · Cross Layer View</div>
         <div className="text-[9px] text-muted-foreground">Space → Topology → Business → Knowledge</div>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-1">

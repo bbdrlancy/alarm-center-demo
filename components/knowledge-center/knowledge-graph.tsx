@@ -194,7 +194,7 @@ export function KnowledgeGraph() {
 
       <div>
         <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Instance Registry · 实例对象清单
+          实例对象清单 · Instance Registry
         </div>
         <InstanceRegistry />
       </div>

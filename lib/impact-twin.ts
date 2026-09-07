@@ -80,3 +80,41 @@ export function downstreamChainIds(hops: ImpactTwinHop[], selected: string | nul
 export function impactChainSentence(nodes: ImpactChainNode[]): string {
   return nodes.map((node) => node.label).join(" → ")
 }
+
+function chainIdFromAlarm(hops: ImpactTwinHop[], alarm: { hop: number; family: string; device: string }): string {
+  const byHop = hops[alarm.hop]
+  if (byHop) return byHop.chainId
+  const token = `${alarm.family} ${alarm.device}`.toLowerCase()
+  const match = hops.find(
+    (hop) => token.includes(hop.chainId) || token.includes(hop.label.toLowerCase()),
+  )
+  return match?.chainId ?? hops[0]?.chainId ?? hops[0]!.chainId
+}
+
+export type AlarmTwinLocation = {
+  hops: ImpactTwinHop[]
+  locationId: string
+  activeHops: Set<string>
+  path: { id: string; label: string }[]
+  device: string
+  sentence: string
+}
+
+export function locateAlarmOnTwin(
+  scenario: ScenarioModel,
+  alarm?: { hop: number; family: string; device: string } | null,
+): AlarmTwinLocation {
+  const hops = getImpactTwinHops(scenario)
+  const locationId = alarm ? chainIdFromAlarm(hops, alarm) : (hops[0]?.chainId ?? "")
+  const activeHops = downstreamChainIds(hops, locationId) ?? new Set(locationId ? [locationId] : [])
+  const start = hops.findIndex((hop) => hop.chainId === locationId)
+  const path = hops.slice(Math.max(0, start)).map((hop) => ({ id: hop.chainId, label: hop.label }))
+  return {
+    hops,
+    locationId,
+    activeHops,
+    path,
+    device: alarm?.device ?? scenario.incident.rootCause,
+    sentence: path.map((node) => node.label).join(" → "),
+  }
+}

@@ -14,9 +14,9 @@ export function ExplainabilityModeSwitch({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
       <div>
-        <div className="text-[11px] font-semibold text-foreground">Mode Switch · 模式切换</div>
+        <div className="text-[11px] font-semibold text-foreground">模式切换 · Mode Switch</div>
         <div className="text-[10px] text-muted-foreground">
-          Basic：业务语言解释 · Expert：完整推理链与知识来源
+          简洁：业务语言解释 · 专家：完整推理链与知识来源
         </div>
       </div>
       <div
@@ -45,8 +45,8 @@ export function ExplainabilityModeSwitch({
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {item.label}
-              <span className="ml-1 font-normal opacity-80">{item.zh}</span>
+              {item.zh}
+              <span className="ml-1 font-normal opacity-80">{item.label}</span>
             </button>
           )
         })}

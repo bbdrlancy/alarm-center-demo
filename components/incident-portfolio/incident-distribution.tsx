@@ -39,8 +39,8 @@ function PieChart() {
 export function IncidentDistribution() {
   return (
     <Panel
-      title="Incident Distribution"
-      subtitle="事故分布"
+      title="事故分布"
+      subtitle="Incident Distribution"
       description="Share of active incidents by domain"
       bodyClassName="p-4"
     >

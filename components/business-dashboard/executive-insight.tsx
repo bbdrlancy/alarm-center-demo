@@ -114,7 +114,7 @@ export function ExecutiveInsight() {
             </span>
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-semibold text-foreground">管理层摘要</div>
-              <div className="truncate text-[10px] text-muted-foreground">Executive Brief · 本月运营成果</div>
+              <div className="truncate text-[10px] text-muted-foreground">本月运营成果 · Executive Brief</div>
             </div>
           </div>
           <div className="flex flex-1 flex-col gap-3 bg-accent/30 p-4">

@@ -133,6 +133,8 @@ function TwinUnit({
   dimmed,
   hop,
   isRoot,
+  localize,
+  alarmMark,
   active,
   onClick,
 }: {
@@ -141,6 +143,8 @@ function TwinUnit({
   dimmed?: boolean
   hop?: number
   isRoot?: boolean
+  localize?: boolean
+  alarmMark?: boolean
   active?: boolean
   onClick?: () => void
 }) {
@@ -170,7 +174,9 @@ function TwinUnit({
         <div className="text-[11px] font-semibold text-cyan-50">{node.name}</div>
         <div className="font-mono text-[9px] text-cyan-200/60">{node.code}</div>
         {isRoot ? (
-          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#ff8a80]">ROOT CAUSE</div>
+          <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#ff8a80]">
+            {alarmMark ? "ALARM" : localize ? "FAULT SOURCE" : "ROOT CAUSE"}
+          </div>
         ) : hop != null ? (
           <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#ffcc80]">IMPACTED</div>
         ) : null}
@@ -257,6 +263,9 @@ export function TwinSchematic({
   activeHops = null,
   onSelectHop,
   subtitle,
+  localize = false,
+  markSelectedAsAlarm = false,
+  showDomainHeat = true,
 }: {
   mode?: "live" | "impact"
   hops?: ImpactTwinHop[]
@@ -264,6 +273,9 @@ export function TwinSchematic({
   activeHops?: Set<string> | null
   onSelectHop?: (chainId: string) => void
   subtitle?: string
+  localize?: boolean
+  markSelectedAsAlarm?: boolean
+  showDomainHeat?: boolean
 }) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [links, setLinks] = useState<{ d: string; kind: TwinEdgeKind | "impact"; active: boolean }[]>([])
@@ -272,20 +284,24 @@ export function TwinSchematic({
     [],
   )
   const impact = mode === "impact"
+  const showHeat = showDomainHeat && !impact
   const spine = useMemo(() => (impact ? impactSpine(hops) : []), [impact, hops])
 
   function unitProps(id: NodeId, fallback: string) {
     if (!impact) return { color: fallback }
     const hop = hopForTwin(id, hops)
     if (!hop) return { color: "#64748b", dimmed: true }
-    const isRoot = hop.status === "root"
+    const isLocation = selectedHop === hop.chainId
     const inFocus = !activeHops || activeHops.has(hop.chainId)
+    const isRoot = markSelectedAsAlarm ? isLocation : hop.status === "root" && inFocus
     return {
-      color: isRoot ? "#e53935" : "#fb8c00",
+      color: isLocation ? "#e53935" : inFocus ? "#fb8c00" : "#64748b",
       dimmed: !inFocus,
-      hop: hop.hop,
+      hop: inFocus ? hop.hop : undefined,
       isRoot,
-      active: selectedHop === hop.chainId,
+      localize,
+      alarmMark: markSelectedAsAlarm && isLocation,
+      active: isLocation || (localize && isRoot),
       onClick: () => onSelectHop?.(hop.chainId),
     }
   }
@@ -367,13 +383,13 @@ export function TwinSchematic({
         <div>
           <div className="text-[13px] font-semibold tracking-wide text-cyan-50">DC01 数据中心 · A 栋</div>
           <div className="text-[10px] text-cyan-200/55">
-            {subtitle ?? (impact ? "数字孪生 · 影响链路叠加" : "实时数字孪生 · 二维拓扑动线")}
+            {subtitle ?? (localize ? "数字孪生 · 故障定位" : impact ? "数字孪生 · 影响链路叠加" : "实时数字孪生 · 二维拓扑动线")}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] text-cyan-200/45">{DIGITAL_TWIN_VERSION}</span>
           <div className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-semibold text-cyan-200">
-            {impact ? "IMPACT PATH" : "LIVE"}
+            {localize ? "LOCALIZE" : markSelectedAsAlarm ? "ALARM PATH" : impact ? "IMPACT PATH" : "LIVE"}
           </div>
         </div>
       </div>
@@ -424,14 +440,14 @@ export function TwinSchematic({
                 <div className="rounded-md border border-violet-400/30 bg-violet-400/5 p-2">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span className="text-[10px] text-violet-200/80">存储域</span>
-                    {!impact ? <HeatChip domain="Storage" /> : null}
+                    {showHeat ? <HeatChip domain="Storage" /> : null}
                   </div>
                   <TwinUnit node={twinNodes.san} {...unitProps("san", "#c084fc")} />
                 </div>
                 <div className="rounded-md border border-sky-400/30 bg-sky-400/5 p-2">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span className="text-[10px] text-sky-200/80">网络域</span>
-                    {!impact ? <HeatChip domain="Network" /> : null}
+                    {showHeat ? <HeatChip domain="Network" /> : null}
                   </div>
                   <TwinUnit node={twinNodes.coresw} {...unitProps("coresw", "#38bdf8")} />
                 </div>
@@ -445,7 +461,7 @@ export function TwinSchematic({
             <div className="rounded-md border border-amber-400/30 bg-amber-400/5 p-2">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-[10px] font-semibold text-amber-100">电力域</span>
-                {!impact ? <HeatChip domain="Power" /> : null}
+                {showHeat ? <HeatChip domain="Power" /> : null}
               </div>
               <div className="flex flex-wrap justify-center gap-2">
                 <TwinUnit node={twinNodes.transformer} {...unitProps("transformer", "#facc15")} />
@@ -456,7 +472,7 @@ export function TwinSchematic({
             <div className="rounded-md border border-cyan-400/30 bg-cyan-400/5 p-2">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-[10px] font-semibold text-cyan-100">制冷域</span>
-                {!impact ? <HeatChip domain="Cooling" /> : null}
+                {showHeat ? <HeatChip domain="Cooling" /> : null}
               </div>
               <div className="flex flex-wrap justify-center gap-2">
                 <TwinUnit node={twinNodes.chiller} {...unitProps("chiller", "#22d3ee")} />
@@ -469,7 +485,33 @@ export function TwinSchematic({
       </div>
 
       <div className="relative z-10 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[10px] text-cyan-100/70">
-        {impact ? (
+        {localize ? (
+          <>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2 rounded-full" style={{ background: "#e53935", boxShadow: "0 0 8px #e53935" }} />
+              故障定位位置
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-slate-400/50" />
+              其余节点降对比
+            </span>
+          </>
+        ) : markSelectedAsAlarm ? (
+          <>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2 rounded-full" style={{ background: "#e53935", boxShadow: "0 0 8px #e53935" }} />
+              告警位置
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2 rounded-full" style={{ background: "#fb8c00", boxShadow: "0 0 8px #fb8c00" }} />
+              可能影响节点
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-0.5 w-4 rounded-full bg-[#e53935]" />
+              可能影响路径
+            </span>
+          </>
+        ) : impact ? (
           <>
             <span className="inline-flex items-center gap-1.5">
               <span className="size-2 rounded-full" style={{ background: "#e53935", boxShadow: "0 0 8px #e53935" }} />

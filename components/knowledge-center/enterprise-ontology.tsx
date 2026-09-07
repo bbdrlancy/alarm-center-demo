@@ -129,11 +129,11 @@ function OntologyRelationshipGraph({
       <div className="mt-2 flex flex-wrap gap-3 border-t border-border/60 pt-2 text-[9px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <span className="size-2.5 rounded border border-border bg-white" />
-          Concept · 概念
+          概念 · Concept
         </span>
         <span className="flex items-center gap-1">
           <span className="h-px w-4 bg-primary/60" />
-          Relationship · 语义关系
+          语义关系 · Relationship
         </span>
       </div>
     </div>
@@ -147,7 +147,7 @@ export function EnterpriseOntology() {
     <Panel
       title="企业本体模型"
       subtitle="Enterprise Ontology"
-      description="Concept + Relationship · 仅展示概念与语义关系，不含任何实例对象"
+      description="概念 + 语义关系 · Concept + Relationship：仅展示概念与语义关系，不含任何实例对象"
       icon={<BookOpen className="size-4" />}
       bodyClassName="space-y-3 p-3 md:p-4"
     >

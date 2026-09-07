@@ -9,10 +9,10 @@ import { ModuleConclusion, Panel } from "@/components/primitives"
 import { cn } from "@/lib/utils"
 
 const basicSections = [
-  { step: 1, id: "impact-path", title: "Impact Path", subtitle: "故障传播路径" },
-  { step: 2, id: "root-cause", title: "Root Cause", subtitle: "根因结论" },
-  { step: 3, id: "business-impact", title: "Business Impact", subtitle: "业务影响" },
-  { step: 4, id: "explanation", title: "Explanation", subtitle: "结论说明" },
+  { step: 1, id: "impact-path", title: "故障传播路径", subtitle: "Impact Path" },
+  { step: 2, id: "root-cause", title: "根因结论", subtitle: "Root Cause" },
+  { step: 3, id: "business-impact", title: "业务影响", subtitle: "Business Impact" },
+  { step: 4, id: "explanation", title: "结论说明", subtitle: "Explanation" },
 ] as const
 
 function ImpactPathSection() {
@@ -20,8 +20,8 @@ function ImpactPathSection() {
   const { incident } = scenario
   return (
     <Panel
-      title="Impact Path"
-      subtitle="故障传播路径"
+      title="故障传播路径"
+      subtitle="Impact Path"
       description={`${scenario.domain} · ${scenario.name}`}
       icon={<CircleDot className="size-4" />}
       bodyClassName="p-4"
@@ -39,8 +39,8 @@ function RootCauseSection() {
   const { incident } = scenario
   return (
     <Panel
-      title="Root Cause"
-      subtitle="根因结论"
+      title="根因结论"
+      subtitle="Root Cause"
       description="AI 判定本次事故的唯一源头"
       icon={<Target className="size-4" />}
       bodyClassName="p-4"
@@ -49,7 +49,7 @@ function RootCauseSection() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              Identified Root Cause · 已确认根因
+              已确认根因 · Identified Root Cause
             </div>
             <div className="mt-1 text-lg font-bold text-[var(--p1)]">{incident.rootCause}</div>
             <p className="mt-2 max-w-xl text-[12px] leading-relaxed text-muted-foreground">
@@ -58,7 +58,7 @@ function RootCauseSection() {
           </div>
           <div className="rounded-lg border border-primary/30 bg-primary/8 px-4 py-3 text-center">
             <div className="text-2xl font-extrabold tabular text-primary">{incident.confidence}%</div>
-            <div className="text-[10px] text-muted-foreground">Confidence · 置信度</div>
+            <div className="text-[10px] text-muted-foreground">置信度 · Confidence</div>
           </div>
         </div>
       </div>
@@ -70,16 +70,16 @@ function BusinessImpactSection() {
   const { scenario } = useDemoScenario()
   const { incident } = scenario
   const items = [
-    { icon: Zap, label: "Affected Service · 受影响服务", value: incident.businessImpact },
-    { icon: Server, label: "Affected Assets · 受影响资产", value: incident.affectedAssets },
-    { icon: Building2, label: "Domain · 领域", value: scenario.domain },
-    { icon: Building2, label: "Incident · 事件编号", value: incident.id },
+    { icon: Zap, label: "受影响服务 · Affected Service", value: incident.businessImpact },
+    { icon: Server, label: "受影响资产 · Affected Assets", value: incident.affectedAssets },
+    { icon: Building2, label: "领域 · Domain", value: scenario.domain },
+    { icon: Building2, label: "事件编号 · Incident", value: incident.id },
   ]
 
   return (
     <Panel
-      title="Business Impact"
-      subtitle="业务影响"
+      title="业务影响"
+      subtitle="Business Impact"
       description="本次故障对业务运营造成的直接影响"
       icon={<Zap className="size-4" />}
       bodyClassName="p-4"
@@ -125,8 +125,8 @@ function ExplanationSection() {
 
   return (
     <Panel
-      title="Explanation"
-      subtitle="结论说明"
+      title="结论说明"
+      subtitle="Explanation"
       description="用业务语言说明根因判定依据与传播路径"
       icon={<Target className="size-4" />}
       bodyClassName="p-4"

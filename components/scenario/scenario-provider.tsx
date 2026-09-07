@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react"
+import { usePathname } from "next/navigation"
 import {
   SCENARIO_STORAGE_KEY,
   scenarios,
@@ -52,6 +53,8 @@ function applyTheme(scenario: ScenarioModel) {
 }
 
 export function ScenarioProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const freezeScenario = pathname === "/rca/manual"
   const [mode, setMode] = useState<ScenarioMode>("power")
   const [scenarioKey, setScenarioKeyState] = useState<ScenarioKey>("power")
   const [transitioning, setTransitioning] = useState(false)
@@ -125,7 +128,7 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
   }, [commitScenario])
 
   useEffect(() => {
-    if (!hydrated || !autoDemo) return
+    if (!hydrated || !autoDemo || freezeScenario) return
 
     timerRef.current = window.setInterval(() => {
       rotateIndex.current = (rotateIndex.current + 1) % scenarioOrder.length
@@ -135,7 +138,7 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current)
     }
-  }, [autoDemo, hydrated, switchWithTransition])
+  }, [autoDemo, hydrated, freezeScenario, switchWithTransition])
 
   const value = useMemo(
     () => ({
@@ -154,11 +157,11 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     <ScenarioContext.Provider value={value}>
       <div
         className="transition-opacity duration-500 ease-in-out"
-        style={{ opacity: transitioning ? 0.35 : 1 }}
+        style={{ opacity: freezeScenario ? 1 : transitioning ? 0.35 : 1 }}
       >
         {children}
       </div>
-      {transitioning ? (
+      {transitioning && !freezeScenario ? (
         <div className="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-background/40 backdrop-blur-[2px]">
           <div className="rounded-xl border border-border bg-card px-6 py-5 text-center shadow-2xl">
             <div className="mb-2 text-sm font-semibold text-foreground">Loading Scenario ...</div>

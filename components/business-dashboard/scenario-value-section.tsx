@@ -52,7 +52,7 @@ export function ScenarioValueSection() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Scenario Value · 当前场景价值
+              当前场景价值 · Scenario Value
             </div>
             <h3 className="text-lg font-bold text-foreground">{scenario.name}</h3>
             <p className="text-[11px] text-muted-foreground">
@@ -73,29 +73,29 @@ export function ScenarioValueSection() {
         <HeroMetric
           value={businessValue.reductionRate}
           suffix="%"
-          label="Alarm Reduction"
-          sublabel="本场景告警收敛"
+          label="告警收敛"
+          sublabel="Alarm Reduction"
           accent="text-[var(--p1)]"
           decimals={2}
         />
         <HeroMetric
           value={businessValue.efficiencyGain}
           suffix="×"
-          label="RCA Speedup"
-          sublabel="本场景分析提速"
+          label="分析提速"
+          sublabel="RCA Speedup"
         />
         <HeroMetric
           value={businessValue.businessRisk}
           prefix="¥"
           suffix="M"
-          label="Risk Avoided"
-          sublabel="本场景风险规避"
+          label="风险规避"
+          sublabel="Risk Avoided"
           decimals={1}
           accent="text-[var(--p1)]"
         />
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/6 px-3 py-4">
           <Clock className="size-5 text-primary" />
-          <div className="text-[10px] font-semibold text-muted-foreground">MTTR · 本场景</div>
+          <div className="text-[10px] font-semibold text-muted-foreground">本场景修复时间 · MTTR</div>
           <div className="flex items-center gap-2 tabular text-lg font-extrabold">
             <span className="text-muted-foreground">{businessValue.mttrBefore}</span>
             <ArrowRight className="size-4 text-primary" />

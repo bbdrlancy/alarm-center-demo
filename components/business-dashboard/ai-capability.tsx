@@ -5,12 +5,12 @@ import { Panel, ModuleConclusion } from "@/components/primitives"
 import { cn } from "@/lib/utils"
 
 const capabilities = [
-  { key: "monitoring", label: "Monitoring · 监控", level: 95, status: "成熟" },
-  { key: "alert", label: "Alert Management · 告警管理", level: 92, status: "成熟" },
-  { key: "correlation", label: "Alarm Correlation · 告警关联", level: 88, status: "成熟" },
-  { key: "rca", label: "Root Cause Analysis · 根因分析", level: 85, status: "成熟" },
-  { key: "predictive", label: "Predictive AIOps · 预测性运维", level: 62, status: "发展中" },
-  { key: "autonomous", label: "Autonomous Operations · 自主运维", level: 45, status: "探索中" },
+  { key: "monitoring", label: "监控 · Monitoring", level: 95, status: "成熟" },
+  { key: "alert", label: "告警管理 · Alert Management", level: 92, status: "成熟" },
+  { key: "correlation", label: "告警关联 · Alarm Correlation", level: 88, status: "成熟" },
+  { key: "rca", label: "根因分析 · Root Cause Analysis", level: 85, status: "成熟" },
+  { key: "predictive", label: "预测性运维 · Predictive AIOps", level: 62, status: "发展中" },
+  { key: "autonomous", label: "自主运维 · Autonomous Operations", level: 45, status: "探索中" },
 ] as const
 
 function levelColor(level: number) {
