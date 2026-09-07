@@ -45,7 +45,7 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
     label: "Impact Chain",
     subtitle: "故障影响链路动画",
     href: rcaHref(defaultIncident.id),
-    highlightId: "topology-graph",
+    highlightId: "incident-overview",
     action: "play-impact-chain",
     durationMs: 6000,
   },

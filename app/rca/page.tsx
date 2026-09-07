@@ -3,10 +3,7 @@
 import { Suspense } from "react"
 import { AppShell } from "@/components/app-shell"
 import { RcaFunnel } from "@/components/rca/rca-funnel"
-import { TopologyGraph } from "@/components/rca/topology-graph"
-import { RcaExecutiveSummary } from "@/components/rca/rca-executive-summary"
-import { RcaIncidentContextBanner } from "@/components/rca/rca-incident-context-banner"
-import { IncidentTimeline } from "@/components/incident-timeline"
+import { IncidentOverview } from "@/components/rca/incident-overview"
 import { StorylineStrip } from "@/components/page-question-banner"
 import { ContinueTo } from "@/components/page-flow"
 import { RcaPageSwitch } from "@/components/rca/rca-page-switch"
@@ -18,12 +15,8 @@ function RcaAiPageContent() {
 
       <RcaPageSwitch current="ai" />
 
-      <RcaIncidentContextBanner />
-
-      <RcaExecutiveSummary />
+      <IncidentOverview />
       <RcaFunnel />
-      <TopologyGraph />
-      <IncidentTimeline />
 
       <ContinueTo label="AI 推理中心 · AI Explainability" href="/knowledge-center" />
     </div>

@@ -44,17 +44,45 @@ export type ConvergenceRule = {
   how: string
 }
 
+export const RULE_SPECS: Record<string, { conditions: string[]; window?: string }> = {
+  noise: {
+    conditions: ["Severity is Warning, or role is flash/noise", "Cleared or recovered within seconds", "Not on the causal dependency path"],
+    window: "4 seconds",
+  },
+  cluster: {
+    conditions: ["Same Alarm Code", "Same Device Group / family", "Within 120 Seconds"],
+    window: "120 seconds",
+  },
+  topology: {
+    conditions: ["Same parent / dependency hop", "Role is root-symptom or cascade", "Secondary and noise excluded"],
+    window: "incident lifetime",
+  },
+  spatial: {
+    conditions: ["Same zone / hall", "Noise excluded"],
+  },
+  temporal: {
+    conditions: ["Same minute window", "Hop order preserved"],
+    window: "60 seconds",
+  },
+  pattern: {
+    conditions: ["Matches historical root fingerprint", "Downstream cascade order consistent"],
+  },
+  causal: {
+    conditions: ["Earliest alarm on topology source", "Explains all downstream cascade alarms", "Noise and companion symptoms excluded"],
+  },
+}
+
 export const CONVERGENCE_RULES: ConvergenceRule[] = [
   {
     key: "noise",
     zh: "噪声抑制",
-    en: "Noise Reduction",
-    how: "去掉 Warning / 闪断，并将同一告警码在兄弟设备上的风暴折叠为 1 条代表。",
+    en: "Noise Filter",
+    how: "去掉 Warning / 闪断噪声，使其不进入后续聚合与因果链。",
   },
   {
     key: "topology",
-    zh: "拓扑关联",
-    en: "Topology Correlation",
+    zh: "依赖关联",
+    en: "Correlation Analysis",
     how: "沿供电 / 制冷 / 存储 / 网络依赖链保留因果跳数上的告警，并按跳数归并为链路节点。",
   },
   {
@@ -77,14 +105,14 @@ export const CONVERGENCE_RULES: ConvergenceRule[] = [
   },
   {
     key: "cluster",
-    zh: "智能聚类",
-    en: "Symptom Clustering",
-    how: "按设备族 + 告警码聚类，相同症状合并为事件组。",
+    zh: "风暴归并",
+    en: "Storm Collapse",
+    how: "同一告警码在兄弟设备上的风暴折叠为 1 条聚合告警。",
   },
   {
     key: "causal",
-    zh: "因果推理",
-    en: "Causal RCA",
+    zh: "根因分析",
+    en: "Root Cause Analysis",
     how: "最早出现在拓扑源头、且能解释全部下游级联的告警，定位为唯一根因。",
   },
 ]
@@ -910,4 +938,678 @@ export function applyConvergenceRule(
 
 export function getRootCauseItem(scenario: ScenarioModel): ConvergenceItem {
   return applyCausal(getScenarioRawAlarms(scenario), scenario)[0]!
+}
+
+export type MergeTrace = {
+  id: string
+  sources: { id: string; label: string; severity: AlarmSeverity }[]
+  target: string
+  targetDetail: string
+  count: number
+}
+
+export type RuleFlowNode = {
+  key: string
+  zh: string
+  en: string
+  how: string
+  input: number
+  output: number
+  reduced: number
+  ratio: number
+  contribution: number
+  inPipeline: boolean
+  traces: MergeTrace[]
+  outputs: ConvergenceItem[]
+  conditions: string[]
+  window?: string
+  affected: TaggedAlarm[]
+}
+
+export type AlarmGroup = {
+  id: string
+  code: string
+  family: string
+  count: number
+  severity: AlarmSeverity
+  mergedBy: string
+  reasons: string[]
+  members: TaggedAlarm[]
+}
+
+export type EvidenceLeaf = {
+  id: string
+  label: string
+  detail?: string
+  alarmId?: string
+}
+
+export type EvidenceBranch = {
+  id: string
+  label: string
+  count?: number
+  leaves: EvidenceLeaf[]
+}
+
+export type TopologyHopEvidence = {
+  hop: number
+  label: string
+  count: number
+  families: string[]
+}
+
+export type RootEvidence = {
+  direct: TaggedAlarm[]
+  topology: TopologyHopEvidence[]
+  temporal: {
+    start: string
+    end: string
+    windows: string[]
+    spanLabel: string
+  }
+  cascadedCount: number
+  suppressed: TaggedAlarm[]
+  factors: { label: string; detail: string }[]
+}
+
+export type FlowStage = {
+  key: string
+  label: string
+  en: string
+  description: string
+  count: number
+  input: number
+  output: number
+  reduced: number
+  contribution: number
+  ruleKey: string | null
+  ruleName: string
+  remaining: TaggedAlarm[]
+}
+
+export type EventRow = {
+  id: string
+  kind: "alarm" | "group"
+  timestamp: string
+  severity: AlarmSeverity
+  device: string
+  code: string
+  displayCode: string
+  ruleApplied: string
+  aggregationGroup: string
+  category: string
+  status: string
+  summary: string
+  expandable: boolean
+  members?: TaggedAlarm[]
+  mergedBy?: string
+  reasons?: string[]
+  window?: string
+  alarmId?: string
+}
+
+export type ConvergenceFlow = {
+  rawCount: number
+  rawAlarms: TaggedAlarm[]
+  stages: FlowStage[]
+  rules: RuleFlowNode[]
+  pipelineRules: RuleFlowNode[]
+  supportingRules: RuleFlowNode[]
+  aggregationGroups: AlarmGroup[]
+  correlationGroups: AlarmGroup[]
+  droppedNoise: TaggedAlarm[]
+  root: ConvergenceItem
+  evidence: RootEvidence
+  evidenceTree: EvidenceBranch[]
+}
+
+const HOP_LABEL: Record<number, string> = {
+  0: "Source Device",
+  1: "Hop 1 Downstream",
+  2: "Hop 2 Downstream",
+  3: "Hop 3 Downstream",
+  4: "Business Layer",
+}
+
+function groupBy<T>(items: T[], keyOf: (item: T) => string): Map<string, T[]> {
+  const groups = new Map<string, T[]>()
+  for (const item of items) {
+    const key = keyOf(item)
+    const list = groups.get(key) ?? []
+    list.push(item)
+    groups.set(key, list)
+  }
+  return groups
+}
+
+function tracesFromGroups(groups: Map<string, TaggedAlarm[]>, targetOf: (list: TaggedAlarm[]) => { target: string; detail: string }): MergeTrace[] {
+  return [...groups.values()]
+    .filter((list) => list.length > 1)
+    .sort((a, b) => b.length - a.length)
+    .map((list) => {
+      const mapped = targetOf(list)
+      return {
+        id: `${list[0]!.family}-${list[0]!.code}`,
+        sources: list.map((alarm) => ({
+          id: alarm.id,
+          label: alarm.device,
+          severity: alarm.severity,
+        })),
+        target: mapped.target,
+        targetDetail: mapped.detail,
+        count: list.length,
+      }
+    })
+}
+
+function ruleMeta(key: string) {
+  return CONVERGENCE_RULES.find((rule) => rule.key === key) ?? CONVERGENCE_RULES[0]!
+}
+
+function toRuleNode(
+  key: string,
+  input: number,
+  outputs: ConvergenceItem[],
+  traces: MergeTrace[],
+  totalDrop: number,
+  inPipeline: boolean,
+  affected: TaggedAlarm[],
+): RuleFlowNode {
+  const meta = ruleMeta(key)
+  const spec = RULE_SPECS[key]
+  const output = outputs.length
+  const reduced = Math.max(0, input - output)
+  return {
+    key,
+    zh: meta.zh,
+    en: meta.en,
+    how: meta.how,
+    input,
+    output,
+    reduced,
+    ratio: input > 0 ? Math.round((reduced / input) * 1000) / 10 : 0,
+    contribution: totalDrop > 0 ? Math.round((reduced / totalDrop) * 1000) / 10 : 0,
+    inPipeline,
+    traces,
+    outputs,
+    conditions: spec?.conditions ?? [],
+    window: spec?.window,
+    affected,
+  }
+}
+
+function toGroups(
+  groups: Map<string, TaggedAlarm[]>,
+  mergedBy: string,
+  reasons: string[],
+  idOf: (list: TaggedAlarm[]) => string,
+  codeOf: (list: TaggedAlarm[]) => string,
+): AlarmGroup[] {
+  return [...groups.values()]
+    .sort((a, b) => b.length - a.length || a[0]!.timestamp.localeCompare(b[0]!.timestamp))
+    .map((list) => ({
+      id: idOf(list),
+      code: codeOf(list),
+      family: list[0]!.family,
+      count: list.length,
+      severity: worstSeverity(list),
+      mergedBy,
+      reasons,
+      members: list,
+    }))
+}
+
+export function buildConvergenceFlow(scenario: ScenarioModel): ConvergenceFlow {
+  const rawAlarms = getScenarioRawAlarms(scenario)
+  const rawCount = rawAlarms.length
+  const totalDrop = Math.max(1, rawCount - 1)
+
+  const afterNoise = rawAlarms.filter((alarm) => alarm.role !== "noise" && alarm.severity !== "Warning")
+  const droppedNoise = rawAlarms.filter((alarm) => alarm.role === "noise" || alarm.severity === "Warning")
+  const stormGroups = groupBy(afterNoise, (alarm) => `${alarm.family}::${alarm.code}`)
+  const afterClusterCount = stormGroups.size
+
+  const causalPath = afterNoise.filter((alarm) => alarm.role === "root-symptom" || alarm.role === "cascade")
+  const hopGroups = groupBy(causalPath, (alarm) => String(alarm.hop))
+  const afterTopoCount = hopGroups.size
+
+  const noiseNode = toRuleNode(
+    "noise",
+    rawCount,
+    afterNoise.map((alarm) => toItem(alarm)),
+    droppedNoise.length
+      ? [
+          {
+            id: "noise-drop",
+            sources: droppedNoise.map((alarm) => ({
+              id: alarm.id,
+              label: alarm.device,
+              severity: alarm.severity,
+            })),
+            target: "Suppressed",
+            targetDetail: "Warning / 闪断不进入因果链",
+            count: droppedNoise.length,
+          },
+        ]
+      : [],
+    totalDrop,
+    true,
+    droppedNoise,
+  )
+
+  const clusterNode = toRuleNode(
+    "cluster",
+    afterNoise.length,
+    applyCluster(afterNoise),
+    tracesFromGroups(stormGroups, (list) => ({
+      target: list[0]!.code,
+      detail: `${list.length} 台兄弟设备同码风暴归并为 1 条`,
+    })),
+    totalDrop,
+    true,
+    afterNoise.filter((alarm) => (stormGroups.get(`${alarm.family}::${alarm.code}`)?.length ?? 0) > 1),
+  )
+
+  const topologyTraces: MergeTrace[] = [...hopGroups.entries()]
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .filter(([, list]) => list.length > 1)
+    .map(([, list]) => ({
+      id: `hop-${list[0]!.hop}`,
+      sources: list.map((alarm) => ({
+        id: alarm.id,
+        label: new Set(list.map((item) => item.device)).size === 1 ? alarm.code.replace(/-\d+$/, "") : alarm.device,
+        severity: alarm.severity,
+      })),
+      target: HOP_LABEL[list[0]!.hop] ?? `Hop ${list[0]!.hop}`,
+      targetDetail: `${[...new Set(list.map((alarm) => alarm.family))].join(" / ")} 处于同一依赖跳数`,
+      count: list.length,
+    }))
+
+  const topologyNode = toRuleNode(
+    "topology",
+    afterClusterCount,
+    applyTopology(afterNoise),
+    topologyTraces,
+    totalDrop,
+    true,
+    causalPath,
+  )
+
+  const spatialNode = toRuleNode(
+    "spatial",
+    rawCount,
+    applySpatial(rawAlarms),
+    tracesFromGroups(
+      groupBy(
+        rawAlarms.filter((alarm) => alarm.role !== "noise"),
+        (alarm) => alarm.zone,
+      ),
+      (list) => ({
+        target: list[0]!.zone,
+        detail: "同一空间簇合并",
+      }),
+    ),
+    totalDrop,
+    false,
+    rawAlarms.filter((alarm) => alarm.role !== "noise"),
+  )
+
+  const temporalNode = toRuleNode(
+    "temporal",
+    rawCount,
+    applyTemporal(rawAlarms),
+    tracesFromGroups(
+      groupBy(
+        rawAlarms.filter((alarm) => alarm.role !== "noise"),
+        (alarm) => minuteKey(alarm.timestamp),
+      ),
+      (list) => ({
+        target: `${minuteKey(list[0]!.timestamp)} 时间窗`,
+        detail: "同一分钟窗口对齐",
+      }),
+    ),
+    totalDrop,
+    false,
+    rawAlarms.filter((alarm) => alarm.role !== "noise"),
+  )
+
+  const rootSymptoms = rawAlarms.filter((alarm) => alarm.role === "root-symptom")
+  const patternNode = toRuleNode(
+    "pattern",
+    rawCount,
+    applyPattern(rawAlarms),
+    rootSymptoms.length
+      ? [
+          {
+            id: "pattern-root",
+            sources: rootSymptoms.map((alarm) => ({
+              id: alarm.id,
+              label: alarm.code.replace(/-\d+$/, ""),
+              severity: alarm.severity,
+            })),
+            target: scenario.incident.rootCause,
+            targetDetail: "源头故障指纹匹配历史根因模式",
+            count: rootSymptoms.length,
+          },
+        ]
+      : [],
+    totalDrop,
+    false,
+    [...rootSymptoms, ...rawAlarms.filter((alarm) => alarm.role === "cascade")],
+  )
+
+  const causalNode = toRuleNode(
+    "causal",
+    afterTopoCount,
+    applyCausal(rawAlarms, scenario),
+    rootSymptoms.length
+      ? [
+          {
+            id: "causal-root",
+            sources: rootSymptoms.map((alarm) => ({
+              id: alarm.id,
+              label: alarm.code.replace(/-\d+$/, ""),
+              severity: alarm.severity,
+            })),
+            target: "Root Cause",
+            targetDetail: scenario.incident.rootCause,
+            count: rootSymptoms.length,
+          },
+        ]
+      : [],
+    totalDrop,
+    true,
+    rootSymptoms,
+  )
+
+  const pipelineRules = [noiseNode, clusterNode, topologyNode, causalNode]
+  const supportingRules = [spatialNode, temporalNode, patternNode]
+  const rules = [...pipelineRules].sort((a, b) => b.contribution - a.contribution || b.reduced - a.reduced)
+
+  const cascade = rawAlarms.filter((alarm) => alarm.role === "cascade")
+  const first = [...rawAlarms].sort((a, b) => a.timestamp.localeCompare(b.timestamp))[0]
+  const last = [...rawAlarms].sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0]
+  const windows = [...new Set(rawAlarms.filter((alarm) => alarm.role !== "noise").map((alarm) => minuteKey(alarm.timestamp)))].sort()
+  const hops = [...hopGroups.entries()].sort((a, b) => Number(a[0]) - Number(b[0]))
+  const cascadeByFamily = [...groupBy(cascade, (alarm) => alarm.family).entries()].map(([family, list]) => ({
+    family,
+    count: list.length,
+  }))
+
+  const aggregationGroups = toGroups(
+    stormGroups,
+    "Storm Collapse",
+    ["Same Alarm Code", "Same Device Group", "Within Time Window"],
+    (list) => `agg-${list[0]!.code}`,
+    (list) => list[0]!.code,
+  )
+
+  const correlationGroups = toGroups(
+    hopGroups,
+    "Correlation Analysis",
+    ["Same Parent Device", "Same dependency hop", "Causal role only"],
+    (list) => `corr-hop-${list[0]!.hop}`,
+    (list) => HOP_LABEL[list[0]!.hop] ?? `Hop ${list[0]!.hop}`,
+  ).sort((a, b) => (a.members[0]?.hop ?? 0) - (b.members[0]?.hop ?? 0))
+
+  return {
+    rawCount,
+    rawAlarms,
+    stages: [
+      {
+        key: "raw",
+        label: "原始告警",
+        en: "Raw Alarm",
+        description: "All ingested alarms before any rule is applied.",
+        count: rawCount,
+        input: rawCount,
+        output: rawCount,
+        reduced: 0,
+        contribution: 0,
+        ruleKey: null,
+        ruleName: "Ingest",
+        remaining: rawAlarms,
+      },
+      {
+        key: "noise",
+        label: "噪声过滤",
+        en: "Noise Filtered",
+        description: "Warning and flash noise removed from the causal path.",
+        count: afterNoise.length,
+        input: rawCount,
+        output: afterNoise.length,
+        reduced: noiseNode.reduced,
+        contribution: noiseNode.contribution,
+        ruleKey: "noise",
+        ruleName: noiseNode.en,
+        remaining: afterNoise,
+      },
+      {
+        key: "cluster",
+        label: "聚合归并",
+        en: "Aggregated",
+        description: "Same-code storm on sibling devices collapsed to one group.",
+        count: afterClusterCount,
+        input: afterNoise.length,
+        output: afterClusterCount,
+        reduced: clusterNode.reduced,
+        contribution: clusterNode.contribution,
+        ruleKey: "cluster",
+        ruleName: clusterNode.en,
+        remaining: afterNoise,
+      },
+      {
+        key: "topology",
+        label: "关联分析",
+        en: "Candidate Cause",
+        description: "Dependency hops retained as candidate causes.",
+        count: afterTopoCount,
+        input: afterClusterCount,
+        output: afterTopoCount,
+        reduced: topologyNode.reduced,
+        contribution: topologyNode.contribution,
+        ruleKey: "topology",
+        ruleName: topologyNode.en,
+        remaining: causalPath,
+      },
+      {
+        key: "causal",
+        label: "根因分析",
+        en: "Root Cause",
+        description: "Single earliest source that explains the full cascade.",
+        count: 1,
+        input: afterTopoCount,
+        output: 1,
+        reduced: causalNode.reduced,
+        contribution: causalNode.contribution,
+        ruleKey: "causal",
+        ruleName: causalNode.en,
+        remaining: rootSymptoms,
+      },
+    ],
+    rules,
+    pipelineRules,
+    supportingRules,
+    aggregationGroups,
+    correlationGroups,
+    droppedNoise,
+    root: getRootCauseItem(scenario),
+    evidence: {
+      direct: rootSymptoms,
+      topology: hops.map(([hop, list]) => ({
+        hop: Number(hop),
+        label: HOP_LABEL[Number(hop)] ?? `Hop ${hop}`,
+        count: list.length,
+        families: [...new Set(list.map((alarm) => alarm.family))],
+      })),
+      temporal: {
+        start: first?.timestamp ?? scenario.incident.startTime,
+        end: last?.timestamp ?? scenario.incident.startTime,
+        windows,
+        spanLabel: `${windows[0] ?? "—"} → ${windows[windows.length - 1] ?? "—"} · ${windows.length} 个级联窗口`,
+      },
+      cascadedCount: cascade.length,
+      suppressed: [...droppedNoise, ...rawAlarms.filter((alarm) => alarm.role === "secondary")],
+      factors: scenario.graph.graphrag.factors,
+    },
+    evidenceTree: [
+      {
+        id: "direct",
+        label: "Direct Evidence",
+        count: rootSymptoms.length,
+        leaves: rootSymptoms.map((alarm) => ({
+          id: alarm.id,
+          label: alarm.code,
+          detail: `${alarm.timestamp} · ${alarm.device}`,
+          alarmId: alarm.id,
+        })),
+      },
+      {
+        id: "topology",
+        label: "Topology Evidence",
+        count: hops.filter(([hop]) => Number(hop) > 0 && Number(hop) < 4).length,
+        leaves: hops
+          .filter(([hop]) => Number(hop) > 0 && Number(hop) < 4)
+          .map(([, list]) => ({
+            id: `topo-${list[0]!.hop}`,
+            label: `${list[0]!.family} · ${list[0]!.code}`,
+            detail: `${list.length} alarms · hop ${list[0]!.hop}`,
+            alarmId: list[0]!.id,
+          })),
+      },
+      {
+        id: "temporal",
+        label: "Temporal Evidence",
+        count: windows.length,
+        leaves: [
+          {
+            id: "temporal-seq",
+            label: "Event Sequence Matches",
+            detail: `${first?.timestamp ?? ""} → ${last?.timestamp ?? ""}`,
+          },
+        ],
+      },
+      {
+        id: "cascade",
+        label: "Cascaded Impact",
+        count: cascade.length,
+        leaves: cascadeByFamily.map((item) => ({
+          id: `fam-${item.family}`,
+          label: `${item.count} ${item.family}`,
+          detail: `${item.count} downstream alarms`,
+        })),
+      },
+    ],
+  }
+}
+
+const CATEGORY_EN: Record<AlarmRole, string> = {
+  "root-symptom": "Root Symptom",
+  cascade: "Cascade",
+  secondary: "Secondary",
+  noise: "Noise",
+}
+
+function timeWindow(members: TaggedAlarm[]): string {
+  if (members.length === 0) return "—"
+  const sorted = [...members].sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+  if (sorted.length === 1) return sorted[0]!.timestamp
+  return `${sorted[0]!.timestamp} → ${sorted[sorted.length - 1]!.timestamp}`
+}
+
+export function explainAlarm(alarm: TaggedAlarm): string {
+  return alarm.message
+}
+
+export function explainGroup(group: AlarmGroup, mode: "aggregated" | "candidate"): string {
+  const head = group.members[0]!
+  if (mode === "aggregated") {
+    if (group.count <= 1) return head.message
+    return `${group.count} 台同类设备同时出现同一问题：${head.message}`
+  }
+  if (group.count <= 1) return `${group.code}：${head.message}`
+  return `${group.code}共 ${group.count} 条相关告警，代表同一依赖层级：${head.message}`
+}
+
+function alarmToRow(alarm: TaggedAlarm, ruleApplied: string, aggregationGroup = "—"): EventRow {
+  return {
+    id: alarm.id,
+    kind: "alarm",
+    timestamp: alarm.timestamp,
+    severity: alarm.severity,
+    device: alarm.device,
+    code: alarm.code,
+    displayCode: alarm.code,
+    ruleApplied,
+    aggregationGroup,
+    category: CATEGORY_EN[alarm.role],
+    status: alarm.status,
+    summary: explainAlarm(alarm),
+    expandable: false,
+    alarmId: alarm.id,
+  }
+}
+
+function groupToRow(group: AlarmGroup, category: string, status: string, mode: "aggregated" | "candidate"): EventRow {
+  const head = group.members[0]!
+  const devices = [...new Set(group.members.map((member) => member.device))]
+  return {
+    id: group.id,
+    kind: "group",
+    timestamp: head.timestamp,
+    severity: group.severity,
+    device: devices.length > 1 ? `${devices[0]} +${devices.length - 1}` : (devices[0] ?? group.family),
+    code: group.code,
+    displayCode: group.count > 1 ? `${group.code} (${group.count})` : group.code,
+    ruleApplied: group.mergedBy,
+    aggregationGroup: group.code,
+    category,
+    status,
+    summary: explainGroup(group, mode),
+    expandable: group.count > 1,
+    members: group.members,
+    mergedBy: group.mergedBy,
+    reasons: group.reasons,
+    window: timeWindow(group.members),
+  }
+}
+
+export function getStageEventRows(flow: ConvergenceFlow, stageKey: string): EventRow[] {
+  switch (stageKey) {
+    case "raw":
+      return flow.rawAlarms.map((alarm) => alarmToRow(alarm, "—"))
+    case "noise":
+      return (flow.stages.find((stage) => stage.key === "noise")?.remaining ?? []).map((alarm) =>
+        alarmToRow(alarm, "Noise Filter"),
+      )
+    case "cluster":
+      return flow.aggregationGroups.map((group) => groupToRow(group, "Aggregated", "Aggregated", "aggregated"))
+    case "topology":
+      return flow.correlationGroups.map((group) => groupToRow(group, "Candidate", "Correlated", "candidate"))
+    case "causal":
+      return [
+        {
+          id: "root-cause",
+          kind: "group",
+          timestamp: flow.evidence.direct[0]?.timestamp ?? flow.root.time,
+          severity: flow.root.severity,
+          device: flow.root.device,
+          code: flow.root.title,
+          displayCode: flow.root.title,
+          ruleApplied: "Root Cause Analysis",
+          aggregationGroup: "Root Cause",
+          category: "Root Cause",
+          status: "Active",
+          summary: flow.root.detail,
+          expandable: flow.evidence.direct.length > 1,
+          members: flow.evidence.direct,
+          mergedBy: "Root Cause Analysis",
+          reasons: flow.evidence.factors.map((factor) => factor.detail || factor.label),
+          window: `${flow.evidence.temporal.start} → ${flow.evidence.temporal.end}`,
+          alarmId: flow.evidence.direct[0]?.id,
+        },
+      ]
+    default:
+      return []
+  }
 }

@@ -46,7 +46,7 @@ export const demoSteps: DemoStep[] = [
     label: "根因调查 RCA",
     subtitle: "1,248 条告警 → 1 条根因",
     href: "/rca",
-    scrollTo: "rca-executive-summary",
+    scrollTo: "incident-overview",
     durationMs: 6000,
   },
   {
