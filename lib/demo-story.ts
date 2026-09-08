@@ -13,11 +13,11 @@ export type DemoStoryStageConfig = {
 
 const defaultIncident = powerScenario.incident
 
-/** 7-stage demo · total ~43s (under 60s) */
+/** 5-stage demo · total ~31s (under 60s) */
 export const demoStoryStages: DemoStoryStageConfig[] = [
   {
     stage: 1,
-    label: "Incident Portfolio",
+    label: "Incident Center",
     subtitle: "12 Open · 2 P1 · ¥12.3M Risk",
     href: "/",
     highlightId: "digital-twin-map",
@@ -33,7 +33,7 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
   },
   {
     stage: 3,
-    label: "RCA Center · Alarm Reduction",
+    label: "Incident Workspace · Alarm Reduction",
     subtitle: defaultIncident.alarmReduction.replace(" → ", " → … → "),
     href: rcaHref(defaultIncident.id),
     highlightId: "correlation-pipeline",
@@ -51,26 +51,9 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
   },
   {
     stage: 5,
-    label: "AI Explainability Center",
-    subtitle: "Impact Path → Root Cause → Business Impact → Explanation",
-    href: "/knowledge-center",
-    highlightId: "basic-explainability-flow",
-    action: "play-explain-steps",
-    durationMs: 7000,
-  },
-  {
-    stage: 6,
-    label: "Why AI Knows",
-    subtitle: "AI 为什么知道？",
-    href: "/knowledge-center",
-    highlightId: "page-learn-banner",
-    durationMs: 5000,
-  },
-  {
-    stage: 7,
     label: "Demo Complete",
-    subtitle: "Portfolio → RCA → Explainability → Copilot",
-    href: "/knowledge-center",
+    subtitle: "Center → Workspace → Investigation → Copilot",
+    href: rcaHref(defaultIncident.id),
     action: "show-summary",
     durationMs: 6000,
   },

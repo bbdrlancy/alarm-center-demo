@@ -56,7 +56,7 @@ export default function IncidentCommandPage() {
           <IncidentReport />
         </section>
 
-        <ScenarioContinueToRca label="根因分析中心" />
+        <ScenarioContinueToRca label="事故工作台" />
       </div>
     </AppShell>
   )

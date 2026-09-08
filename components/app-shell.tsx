@@ -7,11 +7,9 @@ import {
   Bot,
   ClipboardList,
   LayoutGrid,
-  Radar,
   Search,
   Settings,
   ShieldAlert,
-  Sparkles,
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -39,18 +37,9 @@ type NavItem = {
 }
 
 const nav: NavItem[] = [
-  { icon: LayoutGrid, label: "事故组合视图", en: "Incident Portfolio", href: "/", key: "portfolio" },
-  {
-    icon: Radar,
-    label: "根因分析中心",
-    en: "RCA Center",
-    key: "rca",
-    children: [
-      { icon: Bot, label: "自动分析", en: "Auto Analysis", href: "/rca", key: "rca-ai" },
-      { icon: ClipboardList, label: "人工调查", en: "Manual Investigation", href: "/rca/manual", key: "rca-manual" },
-    ],
-  },
-  { icon: Sparkles, label: "AI 推理中心", en: "AI Explainability Center", href: "/knowledge-center", key: "knowledge" },
+  { icon: LayoutGrid, label: "事故中心", en: "Incident Center", href: "/", key: "portfolio" },
+  { icon: Bot, label: "事故工作台", en: "Incident Workspace", href: "/rca", key: "rca-ai" },
+  { icon: ClipboardList, label: "调查工作台", en: "Investigation Workspace", href: "/rca/manual", key: "rca-manual" },
 ]
 
 function Clock() {
@@ -177,7 +166,7 @@ export function AppShell({
           </div>
           <div className="leading-tight">
             <div className="text-[13px] font-semibold text-foreground">AIOps 演示平台</div>
-            <div className="text-[10px] text-muted-foreground">What → Why → Why AI</div>
+            <div className="text-[10px] text-muted-foreground">Center → Workspace → Investigation</div>
           </div>
         </div>
 

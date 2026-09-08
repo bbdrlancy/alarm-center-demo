@@ -1,5 +1,5 @@
 /** Incident Portfolio / Digital Twin revision. Tell the assistant “回退到 DTn” to restore. */
-export const DIGITAL_TWIN_VERSION = "DT35"
+export const DIGITAL_TWIN_VERSION = "DT37"
 
 export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT1", note: "浅色 SVG 流程图" },
@@ -37,4 +37,6 @@ export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT33", note: "流程图亮色流动线速度降至约 1/4，便于顺着路径看" },
   { id: "DT34", note: "人工调查去掉发现问题、理解影响两个模块" },
   { id: "DT35", note: "人工调查 AI 分析探索支持左右展开 / 收起" },
+  { id: "DT36", note: "RCA 顶部 Root Cause First：固定 Incident Decision Banner + Evidence Chips + 证据链展开" },
+  { id: "DT37", note: "一级菜单改为事故中心 / 事故工作台 / 调查工作台；删除 AI 推理中心" },
 ] as const

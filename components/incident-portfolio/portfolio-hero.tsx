@@ -62,7 +62,7 @@ export function PortfolioHero() {
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary">
             <Sparkles className="size-3.5" />
-            全局事故视图 · Incident Portfolio
+            全局事故视图 · Incident Center
           </span>
         </div>
 

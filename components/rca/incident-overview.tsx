@@ -19,7 +19,6 @@ export function IncidentOverview() {
   const { scenario } = useDemoScenario()
   const overview = useMemo(() => getIncidentOverview(scenario), [scenario])
   const hops = useMemo(() => getImpactTwinHops(scenario), [scenario])
-  const tone = priorityMeta[overview.severity]
   const { stage, playing, runId } = useDemoStory()
   const [activeHop, setActiveHop] = useState(0)
   const [activeBeat, setActiveBeat] = useState(0)
@@ -46,76 +45,40 @@ export function IncidentOverview() {
 
   return (
     <section id="incident-overview" className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
-        <article
-          className="overflow-hidden rounded-xl border bg-card shadow-card"
-          style={{ borderColor: `${tone.color}55` }}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3">
-            <div>
-              <Title zh="事故概览" en="Incident Overview" />
-              <div className="mt-0.5 font-mono text-[12px] text-l4">
-                {overview.incidentId} · {overview.domain} · {overview.status}
-              </div>
-            </div>
-            <span className="text-[18px] font-extrabold" style={{ color: tone.color }}>
-              {tone.label}
-            </span>
+      <article className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3">
+          <div>
+            <Title zh="建议行动" en="Recommended Action" />
+            <div className="mt-0.5 text-[12px] text-l4">{action.ownerTeam}</div>
           </div>
-
-          <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.4fr)_auto]">
-            <div>
-              <Field zh="根因" en="Root Cause" />
-              <h2 className="mt-1 text-[28px] font-extrabold leading-tight text-l1">{overview.rootCause}</h2>
-              <p className="mt-1 text-[13px] text-l4">{overview.rootCauseZh}</p>
-            </div>
-            <div className="text-right">
-              <Field zh="置信度" en="Confidence" className="text-right" />
-              <div className="mt-1 text-[40px] font-extrabold leading-none tabular text-l1">{overview.confidence}%</div>
-            </div>
+          <span
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+              ACTION_STATUS_STYLE[action.status],
+            )}
+          >
+            {action.status}
+          </span>
+        </div>
+        <div className="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1.4fr)_auto_minmax(0,1fr)] lg:items-center">
+          <div>
+            <h3 className="text-[16px] font-bold leading-snug text-l1">{action.actionZh}</h3>
+            <p className="mt-1 text-[12px] text-l4">{action.action}</p>
           </div>
-
-          <div className="grid grid-cols-2 border-t border-border lg:grid-cols-4">
-            <Kpi zh="业务影响" en="Business Impact" value={overview.businessImpact} level="l2" />
-            <Kpi zh="受影响资产" en="Affected Assets" value={overview.affectedAssets} level="l2" />
-            <Kpi zh="级联告警" en="Cascaded Alarms" value={String(overview.cascadedCount)} level="l2" />
-            <Kpi zh="持续时间" en="Duration" value={overview.duration} level="l2" />
+          <div className="flex gap-2">
+            <Kpi zh="预计完成" en="ETA" value={action.eta} level="l2" boxed />
+            <Kpi zh="风险下降" en="Risk ↓" value={`${action.riskReduction}%`} level="l2" boxed />
           </div>
-        </article>
-
-        <article className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3">
-            <div>
-              <Title zh="建议行动" en="Recommended Action" />
-              <div className="mt-0.5 text-[12px] text-l4">{action.ownerTeam}</div>
-            </div>
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-[11px] font-bold",
-                ACTION_STATUS_STYLE[action.status],
-              )}
-            >
-              {action.status}
-            </span>
-          </div>
-          <div className="space-y-4 px-5 py-5">
-            <h3 className="text-[20px] font-extrabold leading-snug text-l1">{action.actionZh}</h3>
-            <p className="text-[13px] text-l4">{action.action}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Kpi zh="预计完成" en="ETA" value={action.eta} level="l2" boxed />
-              <Kpi zh="风险下降" en="Risk ↓" value={`${action.riskReduction}%`} level="l2" boxed />
-            </div>
-            <ol className="space-y-1.5">
-              {action.steps.map((step, index) => (
-                <li key={step.zh} className="flex items-baseline gap-2">
-                  <span className="font-mono text-[11px] font-bold text-l4">{index + 1}</span>
-                  <span className="text-[13px] font-semibold text-l2">{step.zh}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </article>
-      </div>
+          <ol className="space-y-1">
+            {action.steps.map((step, index) => (
+              <li key={step.zh} className="flex items-baseline gap-2">
+                <span className="font-mono text-[11px] font-bold text-l4">{index + 1}</span>
+                <span className="text-[12px] font-semibold text-l2">{step.zh}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </article>
 
       <section className="rounded-xl border border-border bg-card px-5 py-4 shadow-card">
         <Title zh="事故故事" en="Incident Story" />
@@ -162,10 +125,10 @@ export function IncidentOverview() {
         </div>
       </section>
 
-      <section id="topology-graph" className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-        <div className="px-5 py-4">
-          <Title zh="影响路径" en="Impact Path" />
-          <p className="mt-1 text-[12px] text-l4">数字孪生叠加 · Digital Twin Overlay</p>
+      <section id="topology-graph" className="overflow-hidden rounded-lg border border-border/70 bg-card/80">
+        <div className="px-5 py-3">
+          <Title zh="影响路径（辅助）" en="Supporting Context · Digital Twin" />
+          <p className="mt-1 text-[11px] text-l4">根因已在顶部确认 · 此处仅辅助查看传播路径</p>
         </div>
         <TwinSchematic
           mode="impact"
@@ -187,15 +150,6 @@ function Title({ zh, en }: { zh: string; en: string }) {
     <div>
       <div className="text-[11px] font-semibold text-l3">{zh}</div>
       <div className="text-[10px] text-l4">{en}</div>
-    </div>
-  )
-}
-
-function Field({ zh, en, className }: { zh: string; en: string; className?: string }) {
-  return (
-    <div className={className}>
-      <div className="text-[10px] font-bold text-l3">{zh}</div>
-      <div className="text-[9px] text-l4">{en}</div>
     </div>
   )
 }

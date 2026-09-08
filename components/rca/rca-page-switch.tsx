@@ -12,8 +12,8 @@ export function RcaPageSwitch({ current }: { current: "ai" | "manual" }) {
       <div className="inline-flex rounded-lg border border-border bg-panel p-0.5 shadow-sm">
         {(
           [
-            { key: "ai" as const, href: "/rca", label: "Auto Analysis", zh: "自动分析" },
-            { key: "manual" as const, href: "/rca/manual", label: "Manual Investigation", zh: "人工调查" },
+            { key: "ai" as const, href: "/rca", label: "Incident Workspace", zh: "事故工作台" },
+            { key: "manual" as const, href: "/rca/manual", label: "Investigation Workspace", zh: "调查工作台" },
           ] as const
         ).map((item) => {
           const active = current === item.key

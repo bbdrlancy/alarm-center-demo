@@ -43,9 +43,9 @@ export function PageQuestionBanner({
 
 export function StorylineStrip({ activeStep }: { activeStep?: number }) {
   const steps = [
-    { zh: "事故组合", en: "Portfolio" },
-    { zh: "根因分析", en: "RCA" },
-    { zh: "AI 推理", en: "Explainability" },
+    { zh: "事故中心", en: "Center" },
+    { zh: "事故工作台", en: "Workspace" },
+    { zh: "调查工作台", en: "Investigation" },
   ]
   return (
     <div className="flex flex-wrap items-center justify-center gap-1 rounded-lg border border-border/60 bg-background/50 px-3 py-2 text-[9px] text-muted-foreground">

@@ -8,8 +8,8 @@ export default function IncidentPortfolioPage() {
   return (
     <AppShell
       active="portfolio"
-      title="事故组合视图"
-      subtitle="Incident Portfolio"
+      title="事故中心"
+      subtitle="Incident Center"
     >
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4">
         <StorylineStrip activeStep={0} />
@@ -18,7 +18,7 @@ export default function IncidentPortfolioPage() {
 
         <RecommendedActions />
 
-        <ScenarioContinueToRca label="根因分析中心 · RCA Center" />
+        <ScenarioContinueToRca label="事故工作台 · Incident Workspace" />
       </div>
     </AppShell>
   )

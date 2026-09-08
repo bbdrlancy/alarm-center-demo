@@ -95,7 +95,7 @@ export function ManualInvestigationWorkspace() {
     >
       <div className="min-w-0 space-y-4">
         <div className="rounded-lg border border-border bg-card px-4 py-2.5 shadow-card">
-          <div className="text-[11px] font-bold text-l3">人工调查工作台</div>
+          <div className="text-[11px] font-bold text-l3">调查工作台</div>
           <div className="text-[13px] font-semibold text-l1">
             {selectedEvent
               ? `${selectedEvent.incidentId} · ${selectedEvent.device} · ${selectedEvent.displayCode}`
