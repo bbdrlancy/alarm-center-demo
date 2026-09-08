@@ -111,7 +111,6 @@ export function StorylineStrip() {
     { zh: "事故组合", en: "Portfolio" },
     { zh: "根因分析", en: "RCA" },
     { zh: "AI 推理", en: "Explainability" },
-    { zh: "业务价值", en: "Value" },
   ]
   return (
     <div className="flex flex-wrap items-center justify-center gap-1 rounded-lg border border-border/60 bg-background/50 px-3 py-2 text-[9px] text-muted-foreground">

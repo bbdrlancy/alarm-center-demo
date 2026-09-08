@@ -19,9 +19,9 @@ const summaryItems = [
     text: "Impact Path、Root Cause、Business Impact 与 Explanation 以业务语言呈现 AI 推理。",
   },
   {
-    title: "Business Value & Copilot",
-    zh: "业务价值与 Copilot",
-    text: "分析从 4 小时压缩至 2 分钟，自动化率 85%，年 ROI ¥8.6M；Copilot 随时解答。",
+    title: "Copilot Assistant",
+    zh: "Copilot 助手",
+    text: "全局浮动 Copilot 随时解答事故、根因与推理问题，贯穿 Portfolio → RCA → Explainability 全流程。",
   },
 ] as const
 
@@ -36,7 +36,7 @@ export function DemoStorySummary({ onClose }: { onClose: () => void }) {
             Demo Story Complete
           </div>
           <h2 className="text-xl font-bold text-foreground">AIOps 产品故事线</h2>
-          <p className="text-[12px] text-muted-foreground">Portfolio → RCA → Explainability → Value → Copilot</p>
+          <p className="text-[12px] text-muted-foreground">Portfolio → RCA → Explainability → Copilot</p>
         </div>
         <div className="grid gap-3 p-6 sm:grid-cols-2">
           {summaryItems.map((item) => (

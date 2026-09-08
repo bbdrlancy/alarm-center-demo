@@ -13,7 +13,7 @@ export type DemoStoryStageConfig = {
 
 const defaultIncident = powerScenario.incident
 
-/** 8-stage demo · total ~54s (under 60s) */
+/** 7-stage demo · total ~43s (under 60s) */
 export const demoStoryStages: DemoStoryStageConfig[] = [
   {
     stage: 1,
@@ -68,18 +68,9 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
   },
   {
     stage: 7,
-    label: "Business Value Center",
-    subtitle: `${powerScenario.businessValue.mttrBefore} → ${powerScenario.businessValue.mttrAfter} → ${powerScenario.businessValue.efficiencyGain}× → ${powerScenario.businessValue.automationRate}% → ¥${powerScenario.businessValue.annualRoi}M`,
-    href: "/business-dashboard",
-    highlightId: "executive-summary-hero",
-    action: "play-roi-hero",
-    durationMs: 6500,
-  },
-  {
-    stage: 8,
     label: "Demo Complete",
-    subtitle: "Portfolio → RCA → Explainability → Value → Copilot",
-    href: "/business-dashboard",
+    subtitle: "Portfolio → RCA → Explainability → Copilot",
+    href: "/knowledge-center",
     action: "show-summary",
     durationMs: 6000,
   },

@@ -152,7 +152,7 @@ export function DemoStoryMode() {
           <div className="min-w-0">
             <div className="text-[11px] font-semibold text-primary">Demo Story Mode</div>
             <div className="truncate text-[10px] text-muted-foreground">
-              Stage {stageIdx + 1}/{demoStoryStages.length} · ~54s
+              Stage {stageIdx + 1}/{demoStoryStages.length} · ~43s
             </div>
           </div>
           <button

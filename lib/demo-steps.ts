@@ -57,12 +57,4 @@ export const demoSteps: DemoStep[] = [
     scrollTo: "incident-report",
     durationMs: 5000,
   },
-  {
-    id: "value",
-    label: "价值展示",
-    subtitle: "节约时间 · 降低风险 · ROI",
-    href: "/business-dashboard",
-    scrollTo: "executive-summary-hero",
-    durationMs: 6000,
-  },
 ]

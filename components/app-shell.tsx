@@ -3,7 +3,6 @@
 import { useEffect, useState, type ComponentType } from "react"
 import {
   Activity,
-  BarChart3,
   Bell,
   Bot,
   ClipboardList,
@@ -52,7 +51,6 @@ const nav: NavItem[] = [
     ],
   },
   { icon: Sparkles, label: "AI 推理中心", en: "AI Explainability Center", href: "/knowledge-center", key: "knowledge" },
-  { icon: BarChart3, label: "业务价值中心", en: "Business Value Center", href: "/business-dashboard", key: "business" },
 ]
 
 function Clock() {
@@ -179,7 +177,7 @@ export function AppShell({
           </div>
           <div className="leading-tight">
             <div className="text-[13px] font-semibold text-foreground">AIOps 演示平台</div>
-            <div className="text-[10px] text-muted-foreground">What → Why → Why AI → Value</div>
+            <div className="text-[10px] text-muted-foreground">What → Why → Why AI</div>
           </div>
         </div>
 

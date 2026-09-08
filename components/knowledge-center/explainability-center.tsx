@@ -10,7 +10,7 @@ import {
 } from "@/components/knowledge-center/explainability-mode-switch"
 import { ExpertExplainabilityFlow } from "@/components/knowledge-center/expert-explainability-flow"
 import { CopilotStaticSection } from "@/components/knowledge-center/copilot-static-section"
-import { ContinueTo } from "@/components/page-flow"
+import { OpenCopilotContinue } from "@/components/page-flow"
 import { PageQuestionBanner, StorylineStrip } from "@/components/page-question-banner"
 import { useDemoStory } from "@/hooks/use-demo-story"
 
@@ -51,7 +51,7 @@ export function ExplainabilityCenter() {
       </div>
 
       <div className="no-print">
-        <ContinueTo label="业务价值中心 · Business Value" href="/business-dashboard" />
+        <OpenCopilotContinue />
       </div>
     </div>
   )
