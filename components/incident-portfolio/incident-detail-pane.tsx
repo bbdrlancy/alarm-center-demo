@@ -23,7 +23,7 @@ export function IncidentDetailPane({ incident }: { incident: CommandIncident | n
         <h2 className="mt-3 text-sm font-semibold text-foreground">事故详情</h2>
         <p className="mt-1 text-[12px] text-muted-foreground">Incident Detail</p>
         <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
-          先看左侧事故组合选择事故，再在右侧查看发生了什么、谁在负责、以及当前行动。
+          先看左侧事故列表选择事故，再在右侧查看发生了什么、谁在负责、以及当前行动。
         </p>
       </section>
     )

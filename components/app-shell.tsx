@@ -6,7 +6,9 @@ import {
   Bell,
   Bot,
   ClipboardList,
+  FileSearch,
   LayoutGrid,
+  ListTree,
   Network,
   Search,
   Settings,
@@ -50,10 +52,25 @@ const nav: NavItem[] = [
   },
   {
     icon: ClipboardList,
-    label: "事件调查中心",
-    en: "Investigation Center",
-    href: "/rca/manual",
-    key: "rca-manual",
+    label: "调查中心",
+    en: "Investigation",
+    key: "investigation",
+    children: [
+      {
+        icon: FileSearch,
+        label: "事故调查",
+        en: "Incident Investigation",
+        href: "/rca/manual",
+        key: "investigation-incident",
+      },
+      {
+        icon: ListTree,
+        label: "事件探索",
+        en: "Event Exploration",
+        href: "/rca/manual/events",
+        key: "investigation-events",
+      },
+    ],
   },
 ]
 

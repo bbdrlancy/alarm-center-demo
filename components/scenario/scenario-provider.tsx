@@ -55,7 +55,7 @@ function applyTheme(scenario: ScenarioModel) {
 export function ScenarioProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   // Incident selector only drives 事故工作台. Freeze auto-rotate and the
-  // transition overlay on 事故总览, 事件调查中心, and other routes.
+  // transition overlay on 事故总览, 调查中心, and other routes.
   const freezeScenario = pathname !== "/rca"
   const [mode, setMode] = useState<ScenarioMode>("power")
   const [scenarioKey, setScenarioKeyState] = useState<ScenarioKey>("power")

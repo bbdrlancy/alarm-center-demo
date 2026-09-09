@@ -16,13 +16,10 @@ export function RootCauseCenter() {
   return (
     <section
       id="root-cause-center"
-      className="overflow-hidden rounded-xl border-2 bg-card shadow-card"
-      style={{ borderColor: tone.color }}
+      className="overflow-hidden rounded-lg border border-border/50 bg-muted/15"
     >
-      <div className="h-1.5" style={{ backgroundColor: tone.color }} />
-
       <div className="grid gap-0 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <div className="border-b border-border p-4 xl:border-b-0 xl:border-r">
+        <div className="border-b border-border/50 p-4 xl:border-b-0 xl:border-r">
           <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Selected Root Cause</div>
           <div className="mt-1 flex items-start gap-2.5">
             <span
@@ -42,7 +39,7 @@ export function RootCauseCenter() {
                 key={card.id}
                 className={cn(
                   "rounded-lg border px-3 py-2.5",
-                  card.id === "confidence" ? "border-primary/40 bg-primary/8" : "border-border bg-muted/25",
+                  card.id === "confidence" ? "border-primary/30 bg-primary/8" : "border-border/50 bg-muted/25",
                 )}
               >
                 <div className="text-[10px] font-semibold text-foreground">{card.zh}</div>
@@ -86,27 +83,27 @@ export function RootCauseCenter() {
         </div>
       </div>
 
-      <div className="grid gap-px border-t border-border bg-border lg:grid-cols-2">
-        <div className="bg-card p-4">
+      <div className="grid gap-px border-t border-border/50 bg-border/40 lg:grid-cols-2">
+        <div className="bg-background/60 p-4">
           <div className="text-[12px] font-bold text-foreground">为何是这个根因</div>
           <div className="text-[10px] text-muted-foreground">Why This Root Cause</div>
           <p className="mt-2 text-[13px] font-semibold leading-relaxed text-foreground">{model.whyThis.zh}</p>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{model.whyThis.en}</p>
           <ul className="mt-3 space-y-1.5">
             {model.factors.map((factor) => (
-              <li key={factor.label} className="rounded-md border border-border bg-muted/25 px-3 py-2">
+              <li key={factor.label} className="rounded-md border border-border/50 bg-muted/25 px-3 py-2">
                 <div className="text-[11px] font-semibold text-foreground">{factor.label}</div>
                 <div className="text-[11px] text-muted-foreground">{factor.detail}</div>
               </li>
             ))}
           </ul>
         </div>
-        <div className="bg-card p-4">
+        <div className="bg-background/60 p-4">
           <div className="text-[12px] font-bold text-foreground">为何不是其他原因</div>
           <div className="text-[10px] text-muted-foreground">Why Not Others</div>
           <div className="mt-2 space-y-2">
             {model.whyNotOthers.map((item) => (
-              <article key={item.name} className="rounded-md border border-border bg-muted/25 px-3 py-2">
+              <article key={item.name} className="rounded-md border border-border/50 bg-muted/25 px-3 py-2">
                 <div className="text-[12px] font-semibold text-foreground">{item.nameZh}</div>
                 <p className="mt-1 text-[12px] leading-relaxed text-foreground">{item.zh}</p>
               </article>

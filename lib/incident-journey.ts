@@ -2,11 +2,11 @@ import type { ScenarioModel } from "@/data/scenarios"
 
 export const JOURNEY_STEPS = [
   { id: "summary", label: "Summary", zh: "摘要", question: "发生了什么？" },
-  { id: "root-cause", label: "Root Cause", zh: "根因", question: "为什么是这个根因？" },
+  { id: "root-cause", label: "Root Cause", zh: "根因", question: "为什么发生？" },
   { id: "propagation", label: "Propagation", zh: "传播", question: "如何传播？" },
-  { id: "impact", label: "Impact", zh: "影响", question: "影响什么？" },
-  { id: "mitigation", label: "Mitigation", zh: "处置", question: "怎么办？" },
-  { id: "evidence", label: "Evidence", zh: "证据", question: "为什么相信这个结论？" },
+  { id: "impact", label: "Impact", zh: "影响", question: "影响了什么？" },
+  { id: "mitigation", label: "Mitigation", zh: "处置", question: "如何恢复？" },
+  { id: "evidence", label: "Evidence", zh: "证据", question: "为何相信？" },
 ] as const
 
 export type JourneyStepId = (typeof JOURNEY_STEPS)[number]["id"]

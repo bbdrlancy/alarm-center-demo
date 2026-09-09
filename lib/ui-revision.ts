@@ -1,5 +1,5 @@
 /** Incident Portfolio / Digital Twin revision. Tell the assistant “回退到 DTn” to restore. */
-export const DIGITAL_TWIN_VERSION = "DT57"
+export const DIGITAL_TWIN_VERSION = "DT68"
 
 export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT1", note: "浅色 SVG 流程图" },
@@ -59,4 +59,15 @@ export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT55", note: "总览只保留导航与摘要；工作台承接故事/证据/影响，并新增根因分析重点区" },
   { id: "DT56", note: "工作台按 What → Why → Impact → Action → Evidence 重组；告警收敛迁到调查中心" },
   { id: "DT57", note: "工作台改为左侧旅程导航 + 右侧章节，默认只展开 Summary / Root Cause" },
+  { id: "DT58", note: "总览顶部改为 Incident Health Board：时间窗、趋势、分布、恢复漏斗" },
+  { id: "DT59", note: "健康看板事故分布改为风险权重 Risk Weight（Cooling/Power/Storage/Network %）" },
+  { id: "DT60", note: "事故列表增加 Priority Rank/Score/Reason 与 Score Composition，解释排序" },
+  { id: "DT61", note: "调查中心拆为事故调查 / 事件探索两个二级页" },
+  { id: "DT62", note: "事故调查新增 Propagation Timeline Investigation（甘特时序 + 孪生联动）" },
+  { id: "DT63", note: "传播时序与收敛流融合为 Event Evolution Timeline 三层演化时间线" },
+  { id: "DT64", note: "事故调查升级为 Evidence Reconstruction：四层时间线、收敛详情、拓扑扩展" },
+  { id: "DT65", note: "Device Lifecycle 可展开 Alarm Timeline / Convergence / Evidence Trace" },
+  { id: "DT66", note: "事故工作台增加生成事故报告：预览全文并下载 Markdown" },
+  { id: "DT67", note: "事故调查新增 Topology Impact Explorer；移除知识图谱关系模块；时间线 Time Sync" },
+  { id: "DT68", note: "工作台旅程每步增加故事线说明：发生了什么 / 为什么发生 / 如何传播 / 影响了什么 / 如何恢复 / 为何相信" },
 ] as const

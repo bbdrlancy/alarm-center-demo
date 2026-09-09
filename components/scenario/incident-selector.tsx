@@ -6,11 +6,11 @@ import { getCommandPortfolio } from "@/lib/incident-command"
 import { cn } from "@/lib/utils"
 import type { ScenarioKey } from "@/data/scenarios"
 
-export function LayerRail({ zh, en }: { zh: string; en: string }) {
+export function LayerRail({ zh, en }: { zh: string; en?: string }) {
   return (
     <div className="flex w-full shrink-0 items-baseline gap-1.5 border-b border-border/60 px-3 py-2 sm:w-[120px] sm:flex-col sm:items-start sm:justify-center sm:gap-0.5 sm:border-b-0 sm:border-r sm:py-2.5">
       <span className="text-[12px] font-semibold text-foreground">{zh}</span>
-      <span className="text-[10px] text-muted-foreground">{en}</span>
+      {en ? <span className="text-[10px] text-muted-foreground">{en}</span> : null}
     </div>
   )
 }
@@ -54,14 +54,18 @@ export function IncidentSelectorBar({
   selectedKey,
   onSelect,
   className,
+  labelZh = "事故",
+  labelEn = "Incident",
 }: {
   selectedKey: ScenarioKey
   onSelect: (key: ScenarioKey) => void
   className?: string
+  labelZh?: string
+  labelEn?: string
 }) {
   return (
     <div className={cn("flex flex-col sm:flex-row", className)}>
-      <LayerRail zh="事故" en="Incident" />
+      <LayerRail zh={labelZh} en={labelEn} />
       <IncidentSelectorChips selectedKey={selectedKey} onSelect={onSelect} />
     </div>
   )

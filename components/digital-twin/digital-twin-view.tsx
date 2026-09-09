@@ -14,7 +14,6 @@ import {
 } from "lucide-react"
 import { TwinSchematic, type TwinChainFocus } from "@/components/incident-portfolio/twin-schematic"
 import { ContinueTo } from "@/components/page-flow"
-import { StorylineStrip } from "@/components/page-question-banner"
 import { IncidentSelectorBar, LayerRail } from "@/components/scenario/incident-selector"
 import {
   digitalTwinHref,
@@ -169,13 +168,13 @@ export function DigitalTwinView() {
 
   return (
     <div className="mx-auto flex max-w-[1760px] flex-col gap-4">
-      <StorylineStrip activeStep={2} />
-
       <section className="overflow-hidden rounded-lg border border-border bg-card shadow-card">
         <IncidentSelectorBar
           className="border-b border-border"
           selectedKey={selectedKey}
           onSelect={selectIncident}
+          labelZh="事故选择"
+          labelEn=""
         />
 
         <div className="flex flex-col border-b border-border bg-muted/15 sm:flex-row">
@@ -395,7 +394,7 @@ export function DigitalTwinView() {
         </div>
       </section>
 
-      <ContinueTo label="事件调查中心 · Investigation Center" href="/rca/manual" />
+      <ContinueTo label="事故调查 · Incident Investigation" href="/rca/manual" />
     </div>
   )
 }

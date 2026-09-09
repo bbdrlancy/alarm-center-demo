@@ -46,7 +46,7 @@ function renderMessage(content: string) {
 
 export function AiopsCopilot() {
   const pathname = usePathname()
-  const hidden = pathname === "/rca/manual"
+  const hidden = pathname.startsWith("/rca/manual")
   const incidentBound = pathname === "/rca"
   const twinPage = pathname === "/digital-twin"
   const { scenario } = useDemoScenario()

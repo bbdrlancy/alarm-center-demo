@@ -46,7 +46,7 @@ export function StorylineStrip({ activeStep }: { activeStep?: number }) {
     { zh: "事故总览", en: "Overview" },
     { zh: "事故工作台", en: "Workspace" },
     { zh: "数字孪生视图", en: "Digital Twin" },
-    { zh: "事件调查中心", en: "Investigation" },
+    { zh: "调查中心", en: "Investigation" },
   ]
   return (
     <div className="flex flex-wrap items-center justify-center gap-1 rounded-lg border border-border/60 bg-background/50 px-3 py-2 text-[9px] text-muted-foreground">

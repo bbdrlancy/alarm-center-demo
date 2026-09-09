@@ -6,6 +6,12 @@ import {
   type ScenarioModel,
 } from "@/data/scenarios"
 import type { Priority } from "@/lib/incident-data"
+import {
+  buildIncidentPriority,
+  type IncidentPriority,
+  type PriorityReason,
+  type ScoreComposition,
+} from "@/lib/incident-priority"
 
 export type LifecycleStatus = "Investigating" | "Analyzed" | "Mitigating" | "Recovering" | "Resolved"
 export type ActionRunStatus = "Pending" | "Running" | "Completed"
@@ -256,7 +262,14 @@ export type CommandIncident = {
     recovered: boolean
     open: boolean
     critical: boolean
+    /** Portfolio ranking — higher score = handle first. */
+    priorityRank: number
+    priorityScore: number
+    priorityComposition: ScoreComposition
+    priorityReasons: PriorityReason[]
   }
+
+export type { IncidentPriority, PriorityReason, ScoreComposition }
 
 function stageMarks(current: RecoveryStageId): CommandIncident["stages"] {
   const currentIdx = STAGE_INDEX[current]
@@ -305,6 +318,19 @@ export function getCommandIncident(key: ScenarioKey): CommandIncident {
   const lastEvent = scenario.timeline.events[scenario.timeline.events.length - 1]
   const startClock = firstEvent?.time ?? `${scenario.incident.startTime}:00`
   const updateClock = lastEvent?.time ?? startClock
+  const priority = buildIncidentPriority({
+    scenarioKey: key,
+    impactScore: profile.impactScore,
+    slaRisk: profile.impact.slaRisk,
+    recoveryPercent: profile.recoveryPercent,
+    durationMins: profile.durationMins,
+    recovered,
+    actionCompletion: profile.actionCompletion,
+    gpuNodes: profile.impact.gpuNodes,
+    whatHappened: profile.whatHappened,
+    title: scenario.incident.title,
+    titleZh: scenario.incident.titleZh,
+  })
   return {
     scenarioKey: key,
     scenario,
@@ -353,21 +379,21 @@ export function getCommandIncident(key: ScenarioKey): CommandIncident {
     recovered,
     open: !recovered,
     critical: scenario.incident.severity === "P1",
+    priorityRank: 0,
+    priorityScore: priority.score,
+    priorityComposition: priority.composition,
+    priorityReasons: priority.reasons,
   }
 }
 
 export function getCommandPortfolio(): CommandIncident[] {
-  const severityRank: Record<string, number> = { P1: 0, P2: 1, P3: 2 }
-  const impactRank: Record<ImpactLevel, number> = { High: 0, Medium: 1, Low: 2 }
   return scenarioOrder
     .map((key) => getCommandIncident(key))
     .sort((a, b) => {
-      const bySev = (severityRank[a.severity] ?? 9) - (severityRank[b.severity] ?? 9)
-      if (bySev !== 0) return bySev
-      const byImpact = impactRank[a.impact.slaRisk] - impactRank[b.impact.slaRisk]
-      if (byImpact !== 0) return byImpact
+      if (b.priorityScore !== a.priorityScore) return b.priorityScore - a.priorityScore
       return a.recoveryPercent - b.recoveryPercent
     })
+    .map((item, index) => ({ ...item, priorityRank: index + 1 }))
 }
 
 export type PortfolioSummary = {
@@ -401,7 +427,8 @@ export function filterCommandPortfolio(items: CommandIncident[], filter: Portfol
 }
 
 export function defaultCommandKey(items: CommandIncident[]): ScenarioKey {
-  return items.find((item) => item.open && item.critical)?.scenarioKey ?? items[0]?.scenarioKey ?? "power"
+  const ranked = [...items].sort((a, b) => b.priorityScore - a.priorityScore)
+  return ranked.find((item) => item.open)?.scenarioKey ?? ranked[0]?.scenarioKey ?? "power"
 }
 
 export const LIFECYCLE_TONE: Record<string, string> = {

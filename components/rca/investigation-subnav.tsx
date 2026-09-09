@@ -3,19 +3,26 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-export function RcaPageSwitch({ current }: { current: "ai" | "manual" }) {
+const ITEMS = [
+  {
+    key: "incident" as const,
+    href: "/rca/manual",
+    zh: "事故调查",
+    en: "Incident Investigation",
+  },
+  {
+    key: "events" as const,
+    href: "/rca/manual/events",
+    zh: "事件探索",
+    en: "Event Exploration",
+  },
+]
+
+export function InvestigationSubnav({ current }: { current: "incident" | "events" }) {
   return (
-    <div
-      className="flex flex-wrap items-center justify-end lg:hidden"
-      aria-label="RCA analysis mode"
-    >
+    <div className="flex flex-wrap items-center justify-between gap-2 lg:hidden" aria-label="Investigation pages">
       <div className="inline-flex rounded-lg border border-border bg-panel p-0.5 shadow-sm">
-        {(
-          [
-            { key: "ai" as const, href: "/rca", label: "Incident Workspace", zh: "事故工作台" },
-            { key: "manual" as const, href: "/rca/manual", label: "Incident Investigation", zh: "事故调查" },
-          ] as const
-        ).map((item) => {
+        {ITEMS.map((item) => {
           const active = current === item.key
           return (
             <Link
@@ -29,7 +36,7 @@ export function RcaPageSwitch({ current }: { current: "ai" | "manual" }) {
               )}
             >
               {item.zh}
-              <span className="ml-1 hidden font-normal opacity-80 sm:inline">{item.label}</span>
+              <span className="ml-1 hidden font-normal opacity-80 sm:inline">{item.en}</span>
             </Link>
           )
         })}

@@ -10,6 +10,7 @@ export function Panel({
   action,
   className,
   bodyClassName,
+  id,
   children,
 }: {
   title: string
@@ -19,10 +20,12 @@ export function Panel({
   action?: ReactNode
   className?: string
   bodyClassName?: string
+  id?: string
   children: ReactNode
 }) {
   return (
     <section
+      id={id}
       className={cn(
         "flex flex-col rounded-lg border border-border bg-card shadow-card",
         className,

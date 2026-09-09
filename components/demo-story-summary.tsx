@@ -19,9 +19,14 @@ const summaryItems = [
     text: "在拓扑上解释事故发生位置与传播路径，供电 / 制冷 / 网络 / 业务分层查看。",
   },
   {
-    title: "Investigation Center",
-    zh: "事件调查中心",
-    text: "人工核对告警、候选根因与证据，确认或修正自动分析结论。",
+    title: "Incident Investigation",
+    zh: "事故调查",
+    text: "在调查中心核验告警收敛、数字孪生影响路径与根因候选，确认或修正结论。",
+  },
+  {
+    title: "Event Exploration",
+    zh: "事件探索",
+    text: "批量选择原始告警并做收敛模拟分析，支持降噪 / 关系 / 场景方法对比。",
   },
   {
     title: "Copilot Assistant",

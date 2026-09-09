@@ -41,10 +41,10 @@ export const demoStoryStages: DemoStoryStageConfig[] = [
   },
   {
     stage: 4,
-    label: "Investigation Center",
-    subtitle: "Can I validate the conclusion?",
+    label: "Incident Investigation",
+    subtitle: "Validate conclusion · Alarm Convergence",
     href: "/rca/manual",
-    highlightId: "correlation-pipeline",
+    highlightId: "event-evolution-timeline",
     action: "play-alarm-reduction",
     durationMs: 5500,
   },

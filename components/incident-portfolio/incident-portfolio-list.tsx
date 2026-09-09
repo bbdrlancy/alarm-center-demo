@@ -29,8 +29,8 @@ export function IncidentPortfolioList({
   return (
     <div id="incident-portfolio-list">
     <Panel
-      title="事故组合"
-      subtitle="L1 Incident Portfolio"
+      title="事故列表"
+      subtitle="Incident List · Ranked by Priority Score"
       icon={<ListFilter className="size-4" />}
       className="h-full"
       bodyClassName="flex flex-col gap-3 p-3"

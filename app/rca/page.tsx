@@ -2,7 +2,6 @@
 
 import { Suspense } from "react"
 import { AppShell } from "@/components/app-shell"
-import { StorylineStrip } from "@/components/page-question-banner"
 import { RcaPageSwitch } from "@/components/rca/rca-page-switch"
 import { IncidentWorkspace } from "@/components/rca/incident-workspace"
 import { ScenarioSwitcher } from "@/components/scenario/scenario-switcher"
@@ -14,8 +13,6 @@ function RcaAiPageContent() {
   const incident = getCommandIncident(scenario.id)
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col gap-4">
-      <StorylineStrip activeStep={1} />
-
       <ScenarioSwitcher />
 
       <RcaPageSwitch current="ai" />
