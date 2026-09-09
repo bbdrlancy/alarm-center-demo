@@ -6,6 +6,7 @@ import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import { Panel } from "@/components/primitives"
 import { EventExplorer } from "@/components/rca/event-explorer"
 import { useDemoStory } from "@/hooks/use-demo-story"
+import type { ScenarioModel } from "@/data/scenarios"
 import { buildConvergenceFlow, getStageEventRows, type RuleFlowNode } from "@/lib/alarm-convergence"
 import { cn } from "@/lib/utils"
 
@@ -112,8 +113,9 @@ function LinkedRuleDetail({ rule }: { rule: RuleFlowNode | undefined }) {
   )
 }
 
-export function RcaFunnel() {
-  const { scenario } = useDemoScenario()
+export function RcaFunnel({ scenario: scenarioOverride }: { scenario?: ScenarioModel } = {}) {
+  const { scenario: demoScenario } = useDemoScenario()
+  const scenario = scenarioOverride ?? demoScenario
   const { stage, playing, runId } = useDemoStory()
   const flow = useMemo(() => buildConvergenceFlow(scenario), [scenario])
   const [activeStage, setActiveStage] = useState("cluster")
@@ -125,7 +127,7 @@ export function RcaFunnel() {
   }, [scenario.id])
 
   useEffect(() => {
-    if (stage !== 3 || !playing) return
+    if (stage !== 4 || !playing) return
     const keys = ["raw", "noise", "cluster", "topology", "causal"] as const
     let i = 0
     setActiveStage("raw")

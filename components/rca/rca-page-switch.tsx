@@ -13,7 +13,7 @@ export function RcaPageSwitch({ current }: { current: "ai" | "manual" }) {
         {(
           [
             { key: "ai" as const, href: "/rca", label: "Incident Workspace", zh: "事故工作台" },
-            { key: "manual" as const, href: "/rca/manual", label: "Investigation Workspace", zh: "调查工作台" },
+            { key: "manual" as const, href: "/rca/manual", label: "Investigation Center", zh: "事件调查中心" },
           ] as const
         ).map((item) => {
           const active = current === item.key

@@ -8,7 +8,13 @@ import { cn } from "@/lib/utils"
 import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import {
   buildCopilotWelcome,
+  buildPortfolioCopilotWelcome,
+  buildTwinCopilotWelcome,
+  getPortfolioCopilotResponse,
   getScenarioCopilotResponse,
+  getTwinCopilotResponse,
+  portfolioCopilotSuggestions,
+  twinCopilotSuggestions,
 } from "@/lib/scenario-copilot"
 
 type Message = {
@@ -41,19 +47,40 @@ function renderMessage(content: string) {
 export function AiopsCopilot() {
   const pathname = usePathname()
   const hidden = pathname === "/rca/manual"
+  const incidentBound = pathname === "/rca"
+  const twinPage = pathname === "/digital-twin"
   const { scenario } = useDemoScenario()
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState("")
   const [typing, setTyping] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "assistant", content: buildCopilotWelcome(scenario) },
+    {
+      id: "welcome",
+      role: "assistant",
+      content: incidentBound
+        ? buildCopilotWelcome(scenario)
+        : twinPage
+          ? buildTwinCopilotWelcome()
+          : buildPortfolioCopilotWelcome(),
+    },
   ])
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setMessages([{ id: `welcome-${scenario.id}`, role: "assistant", content: buildCopilotWelcome(scenario) }])
-  }, [scenario])
+    if (hidden) return
+    setMessages([
+      {
+        id: incidentBound ? `welcome-${scenario.id}` : twinPage ? "welcome-twin" : "welcome-portfolio",
+        role: "assistant",
+        content: incidentBound
+          ? buildCopilotWelcome(scenario)
+          : twinPage
+            ? buildTwinCopilotWelcome()
+            : buildPortfolioCopilotWelcome(),
+      },
+    ])
+  }, [hidden, incidentBound, twinPage, scenario])
 
   useEffect(() => {
     const open = () => setOpen(true)
@@ -89,13 +116,17 @@ export function AiopsCopilot() {
         const reply: Message = {
           id: `a-${Date.now()}`,
           role: "assistant",
-          content: getScenarioCopilotResponse(scenario, query),
+          content: incidentBound
+            ? getScenarioCopilotResponse(scenario, query)
+            : twinPage
+              ? getTwinCopilotResponse(query)
+              : getPortfolioCopilotResponse(query),
         }
         setMessages((prev) => [...prev, reply])
         setTyping(false)
       }, 600)
     },
-    [typing, scenario],
+    [typing, scenario, incidentBound, twinPage],
   )
 
   if (hidden) return null
@@ -196,7 +227,12 @@ export function AiopsCopilot() {
             快捷问题 · Quick Prompts
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {scenario.copilot.suggestions.map((q) => (
+            {(incidentBound
+              ? scenario.copilot.suggestions
+              : twinPage
+                ? twinCopilotSuggestions
+                : portfolioCopilotSuggestions
+            ).map((q) => (
               <button
                 key={q}
                 type="button"
@@ -237,7 +273,11 @@ export function AiopsCopilot() {
             </button>
           </form>
           <p className="mt-2 text-center text-[10px] text-muted-foreground">
-            基于当前事件数据提供分析建议
+            {incidentBound
+              ? "基于当前事件数据提供分析建议"
+              : twinPage
+                ? "基于数字孪生视图提供空间与传播说明"
+                : "基于事故总览提供说明"}
           </p>
         </div>
       </aside>

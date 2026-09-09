@@ -1,5 +1,5 @@
 /** Incident Portfolio / Digital Twin revision. Tell the assistant “回退到 DTn” to restore. */
-export const DIGITAL_TWIN_VERSION = "DT37"
+export const DIGITAL_TWIN_VERSION = "DT57"
 
 export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT1", note: "浅色 SVG 流程图" },
@@ -39,4 +39,24 @@ export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT35", note: "人工调查 AI 分析探索支持左右展开 / 收起" },
   { id: "DT36", note: "RCA 顶部 Root Cause First：固定 Incident Decision Banner + Evidence Chips + 证据链展开" },
   { id: "DT37", note: "一级菜单改为事故中心 / 事故工作台 / 调查工作台；删除 AI 推理中心" },
+  { id: "DT38", note: "事故选择器仅出现在事故工作台，事故中心与调查工作台内容不受其控制" },
+  { id: "DT39", note: "一级菜单改为事故中心 / 事件调查中心；事故总览与事故工作台降为事故中心子菜单" },
+  { id: "DT40", note: "事故总览数字孪生下移缩小；Impact/Power/Cooling/Network 标签；默认只高亮根因与受影响对象，放大后展示机架与设备名" },
+  { id: "DT41", note: "事故总览重构为 L0 指挥摘要 / L1 事故列表 / L2 故事与证据 / L3 影响恢复 / L4 三栏行动，数字孪生跟随所选事故" },
+  { id: "DT42", note: "事故总览去重：L0 只保留摘要与恢复时间轴，L3 改为影响拆解与传播链，L4 改名为执行中心并作为 Action 详情唯一入口" },
+  { id: "DT43", note: "取消 Execution Center；L0 仅当前事故视角；执行信息并入 Incident Portfolio 事故卡" },
+  { id: "DT44", note: "事故组合左栏卡片；右侧事故详情（行动/故事/证据/影响）默认收起，选中后以强调底色成组展示" },
+  { id: "DT45", note: "数字孪生从事故总览拆出为事故中心三级菜单；总览只回答发生了什么，孪生负责位置与传播解释" },
+  { id: "DT46", note: "事故总览底部恢复压缩版数字孪生；独立数字孪生视图保持不变" },
+  { id: "DT47", note: "事故总览改为 Portfolio First：顶部全局态势，40/60 Master-Detail，单事故信息仅在右侧详情" },
+  { id: "DT48", note: "事故卡片改为 3 秒可读结构：生命周期状态、Open/Recovery/Impact、Action Status，去掉评分与双重进度" },
+  { id: "DT49", note: "Portfolio 只保留导航字段；Owner/Action/ETA 仅出现在右侧 Detail" },
+  { id: "DT50", note: "数字孪生视图去掉本页回答模块" },
+  { id: "DT51", note: "数字孪生改为 L1 事故 / L2 视图 / L3 叠加三层结构，不再并列" },
+  { id: "DT52", note: "去掉侧栏路径标注；画布标题改为 Digital Twin Canvas；三层标签去掉问题句" },
+  { id: "DT53", note: "顶栏事故选择器下移到事故工作台，与数字孪生共用同一套事故芯片" },
+  { id: "DT54", note: "事故摘要增加开始/更新时间；详情可跳转工作台并带上所选事故" },
+  { id: "DT55", note: "总览只保留导航与摘要；工作台承接故事/证据/影响，并新增根因分析重点区" },
+  { id: "DT56", note: "工作台按 What → Why → Impact → Action → Evidence 重组；告警收敛迁到调查中心" },
+  { id: "DT57", note: "工作台改为左侧旅程导航 + 右侧章节，默认只展开 Summary / Root Cause" },
 ] as const

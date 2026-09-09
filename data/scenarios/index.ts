@@ -149,6 +149,10 @@ export function rcaHref(incidentId: string) {
   return `/rca?incident=${encodeURIComponent(incidentId)}`
 }
 
+export function digitalTwinHref(incidentId: string) {
+  return `/digital-twin?incident=${encodeURIComponent(incidentId)}`
+}
+
 export type ScenarioSelectOption = { value: ScenarioMode; label: string }
 
 export const scenarioSelectOptions: ScenarioSelectOption[] = [

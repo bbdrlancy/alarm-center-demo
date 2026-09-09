@@ -1,5 +1,5 @@
 import { powerScenario } from "@/data/scenarios/power"
-import { rcaHref } from "@/data/scenarios"
+import { digitalTwinHref, rcaHref } from "@/data/scenarios"
 
 export type DemoStoryStageConfig = {
   stage: number
@@ -17,42 +17,41 @@ const defaultIncident = powerScenario.incident
 export const demoStoryStages: DemoStoryStageConfig[] = [
   {
     stage: 1,
-    label: "Incident Center",
-    subtitle: "12 Open · 2 P1 · ¥12.3M Risk",
+    label: "Incident Overview",
+    subtitle: "What incidents exist?",
     href: "/",
-    highlightId: "digital-twin-map",
+    highlightId: "incident-portfolio-list",
     durationMs: 5500,
   },
   {
     stage: 2,
-    label: "Recommended Actions",
-    subtitle: `Select ${defaultIncident.id} · ${defaultIncident.title}`,
-    href: "/",
-    highlightId: "recommended-actions",
-    durationMs: 5500,
+    label: "Incident Workspace · Journey",
+    subtitle: "What → Why → How it spread → Impact → Action",
+    href: rcaHref(defaultIncident.id),
+    highlightId: "incident-journey",
+    durationMs: 7000,
   },
   {
     stage: 3,
-    label: "Incident Workspace · Alarm Reduction",
-    subtitle: defaultIncident.alarmReduction.replace(" → ", " → … → "),
-    href: rcaHref(defaultIncident.id),
-    highlightId: "correlation-pipeline",
-    action: "play-alarm-reduction",
-    durationMs: 7500,
+    label: "Digital Twin View",
+    subtitle: "Where happened · How does it propagate?",
+    href: digitalTwinHref(defaultIncident.id),
+    highlightId: "digital-twin-canvas",
+    durationMs: 6500,
   },
   {
     stage: 4,
-    label: "Impact Chain",
-    subtitle: "故障影响链路动画",
-    href: rcaHref(defaultIncident.id),
-    highlightId: "incident-overview",
-    action: "play-impact-chain",
-    durationMs: 6000,
+    label: "Investigation Center",
+    subtitle: "Can I validate the conclusion?",
+    href: "/rca/manual",
+    highlightId: "correlation-pipeline",
+    action: "play-alarm-reduction",
+    durationMs: 5500,
   },
   {
     stage: 5,
     label: "Demo Complete",
-    subtitle: "Center → Workspace → Investigation → Copilot",
+    subtitle: "Overview → Workspace → Twin → Investigation",
     href: rcaHref(defaultIncident.id),
     action: "show-summary",
     durationMs: 6000,

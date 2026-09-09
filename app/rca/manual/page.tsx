@@ -10,7 +10,7 @@ import { RcaPageSwitch } from "@/components/rca/rca-page-switch"
 function RcaManualPageContent() {
   return (
     <div className="mx-auto flex max-w-[1760px] flex-col gap-4">
-      <StorylineStrip activeStep={2} />
+      <StorylineStrip activeStep={3} />
       <RcaPageSwitch current="manual" />
       <ManualInvestigationWorkspace />
       <OpenCopilotContinue />
@@ -20,7 +20,12 @@ function RcaManualPageContent() {
 
 export default function RcaManualPage() {
   return (
-    <AppShell active="rca-manual" title="调查工作台" subtitle="Investigation Workspace" hideDemoControls>
+    <AppShell
+      active="rca-manual"
+      title="事件调查中心"
+      subtitle="Investigation Center"
+      hideDemoControls
+    >
       <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>}>
         <RcaManualPageContent />
       </Suspense>

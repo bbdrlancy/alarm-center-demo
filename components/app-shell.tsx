@@ -7,6 +7,7 @@ import {
   Bot,
   ClipboardList,
   LayoutGrid,
+  Network,
   Search,
   Settings,
   ShieldAlert,
@@ -15,7 +16,6 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { StatusDot } from "@/components/primitives"
 import { DemoStoryStartButton } from "@/components/demo-story-mode"
-import { ScenarioSwitcher } from "@/components/scenario/scenario-switcher"
 
 type NavIcon = ComponentType<{ className?: string }>
 
@@ -37,9 +37,24 @@ type NavItem = {
 }
 
 const nav: NavItem[] = [
-  { icon: LayoutGrid, label: "事故中心", en: "Incident Center", href: "/", key: "portfolio" },
-  { icon: Bot, label: "事故工作台", en: "Incident Workspace", href: "/rca", key: "rca-ai" },
-  { icon: ClipboardList, label: "调查工作台", en: "Investigation Workspace", href: "/rca/manual", key: "rca-manual" },
+  {
+    icon: ShieldAlert,
+    label: "事故中心",
+    en: "Incident Center",
+    key: "incident-center",
+    children: [
+      { icon: LayoutGrid, label: "事故总览", en: "Incident Overview", href: "/", key: "portfolio" },
+      { icon: Bot, label: "事故工作台", en: "Incident Workspace", href: "/rca", key: "rca-ai" },
+      { icon: Network, label: "数字孪生视图", en: "Digital Twin View", href: "/digital-twin", key: "digital-twin" },
+    ],
+  },
+  {
+    icon: ClipboardList,
+    label: "事件调查中心",
+    en: "Investigation Center",
+    href: "/rca/manual",
+    key: "rca-manual",
+  },
 ]
 
 function Clock() {
@@ -166,7 +181,6 @@ export function AppShell({
           </div>
           <div className="leading-tight">
             <div className="text-[13px] font-semibold text-foreground">AIOps 演示平台</div>
-            <div className="text-[10px] text-muted-foreground">Center → Workspace → Investigation</div>
           </div>
         </div>
 
@@ -230,8 +244,6 @@ export function AppShell({
           >
             <Settings className="size-4" />
           </button>
-
-          {hideDemoControls ? null : <ScenarioSwitcher />}
 
           {hideDemoControls ? null : <DemoStoryStartButton />}
 

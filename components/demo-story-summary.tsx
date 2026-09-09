@@ -4,24 +4,29 @@ import { Sparkles } from "lucide-react"
 
 const summaryItems = [
   {
-    title: "Incident Center",
-    zh: "事故中心",
+    title: "Incident Overview",
+    zh: "事故总览",
     text: "12 起活跃事故，Power 与 Cooling 为主要风险域，预估业务暴露 ¥12.3M。",
   },
   {
     title: "Incident Workspace",
     zh: "事故工作台",
-    text: "从事故中心进入工作台，1,248 条告警收敛至唯一根因，98% 置信度。",
+    text: "从事故总览进入工作台，回答发生了什么、为何如此判断、下一步怎么做。",
   },
   {
-    title: "Investigation Workspace",
-    zh: "调查工作台",
-    text: "人工核对告警、候选根因与数字孪生路径，确认或修正自动分析结论。",
+    title: "Digital Twin View",
+    zh: "数字孪生视图",
+    text: "在拓扑上解释事故发生位置与传播路径，供电 / 制冷 / 网络 / 业务分层查看。",
+  },
+  {
+    title: "Investigation Center",
+    zh: "事件调查中心",
+    text: "人工核对告警、候选根因与证据，确认或修正自动分析结论。",
   },
   {
     title: "Copilot Assistant",
     zh: "Copilot 助手",
-    text: "全局浮动 Copilot 随时解答事故与根因问题，贯穿事故中心 → 工作台 → 调查全流程。",
+    text: "全局浮动 Copilot 随时解答事故与根因问题，贯穿总览 → 工作台 → 数字孪生 → 调查全流程。",
   },
 ] as const
 
@@ -36,7 +41,7 @@ export function DemoStorySummary({ onClose }: { onClose: () => void }) {
             Demo Story Complete
           </div>
           <h2 className="text-xl font-bold text-foreground">AIOps 产品故事线</h2>
-          <p className="text-[12px] text-muted-foreground">Center → Workspace → Investigation → Copilot</p>
+          <p className="text-[12px] text-muted-foreground">Overview → Workspace → Twin → Investigation</p>
         </div>
         <div className="grid gap-3 p-6 sm:grid-cols-2">
           {summaryItems.map((item) => (

@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react"
 import { TwinSchematic } from "@/components/incident-portfolio/twin-schematic"
 import { ConvergenceSimulator } from "@/components/rca/convergence-simulator"
 import { EventExplorer } from "@/components/rca/event-explorer"
+import { RcaFunnel } from "@/components/rca/rca-funnel"
 import { InvestigationChatDialog } from "@/components/rca/investigation-chat-dialog"
 import { Panel } from "@/components/primitives"
 import { scenarios, type ScenarioKey } from "@/data/scenarios"
@@ -95,7 +96,7 @@ export function ManualInvestigationWorkspace() {
     >
       <div className="min-w-0 space-y-4">
         <div className="rounded-lg border border-border bg-card px-4 py-2.5 shadow-card">
-          <div className="text-[11px] font-bold text-l3">调查工作台</div>
+          <div className="text-[11px] font-bold text-l3">事件调查中心</div>
           <div className="text-[13px] font-semibold text-l1">
             {selectedEvent
               ? `${selectedEvent.incidentId} · ${selectedEvent.device} · ${selectedEvent.displayCode}`
@@ -114,6 +115,8 @@ export function ManualInvestigationWorkspace() {
             setFocusKey(scenarioFromEventRow(row))
           }}
         />
+
+        <RcaFunnel scenario={scenario} />
 
         {selectedEvent ? (
           <>

@@ -1,28 +1,21 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from "react"
+import { useMemo, useRef, useState, type DragEvent, type PointerEvent } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, ClipboardList, GripVertical, Sparkles } from "lucide-react"
+import { ArrowRight, ClipboardList, GripVertical } from "lucide-react"
 import {
   getRecommendedActions,
   incidentIdToScenarioKey,
   rcaHref,
   type RecommendedActionRow,
+  type ScenarioKey,
 } from "@/data/scenarios"
+import { getCommandIncident } from "@/lib/incident-command"
 import { useDemoScenario } from "@/components/scenario/scenario-provider"
 import { PriorityBadge, Panel } from "@/components/primitives"
-import { priorityMeta } from "@/lib/incident-data"
 import { cn } from "@/lib/utils"
 
 type ActionStatus = RecommendedActionRow["status"]
-
-/** How the current demo scenario card is called out in Recommended Actions. */
-const ACTIVE_HIGHLIGHT = {
-  labelZh: "当前场景",
-  labelEn: "CURRENT",
-  dimOthers: 0.48,
-  leftBar: 4,
-} as const
 
 const STATUS_COLUMNS: {
   key: ActionStatus
@@ -53,21 +46,30 @@ function statusFromPoint(clientX: number, clientY: number): ActionStatus | null 
   return null
 }
 
-export function RecommendedActions() {
+function completionOf(row: RecommendedActionRow) {
+  if (row.status === "Completed") return 100
+  if (row.status === "Suggested") return 0
+  return getCommandIncident(row.scenarioKey).nextAction.completion
+}
+
+export function RecommendedActions({
+  selectedIncidentId,
+  actions: controlledActions,
+  onActionsChange,
+  onSelectIncident,
+}: {
+  selectedIncidentId?: string
+  actions?: RecommendedActionRow[]
+  onActionsChange?: (actions: RecommendedActionRow[]) => void
+  onSelectIncident?: (incidentId: string, scenarioKey: ScenarioKey) => void
+} = {}) {
   const router = useRouter()
-  const { scenario, setScenarioKey } = useDemoScenario()
-  const [actions, setActions] = useState<RecommendedActionRow[]>(() => getRecommendedActions())
+  const { setScenarioKey } = useDemoScenario()
+  const [internalActions, setInternalActions] = useState<RecommendedActionRow[]>(() => getRecommendedActions())
+  const actions = controlledActions ?? internalActions
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [overStatus, setOverStatus] = useState<ActionStatus | null>(null)
   const draggingIdRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    const id = `action-card-${scenario.incident.id}`
-    const timer = window.setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" })
-    }, 900)
-    return () => window.clearTimeout(timer)
-  }, [scenario.incident.id])
 
   const grouped = useMemo(() => {
     const map: Record<ActionStatus, RecommendedActionRow[]> = {
@@ -82,9 +84,9 @@ export function RecommendedActions() {
   }, [actions])
 
   const setStatus = (incidentId: string, status: ActionStatus) => {
-    setActions((prev) =>
-      prev.map((row) => (row.incidentId === incidentId ? { ...row, status } : row)),
-    )
+    const next = actions.map((row) => (row.incidentId === incidentId ? { ...row, status } : row))
+    if (onActionsChange) onActionsChange(next)
+    else setInternalActions(next)
   }
 
   const openRca = (incidentId: string) => {
@@ -156,8 +158,8 @@ export function RecommendedActions() {
 
   return (
     <Panel
-      title="建议操作"
-      subtitle="Recommended Actions"
+      title="执行中心"
+      subtitle="L4 Execution Center"
       icon={<ClipboardList className="size-4" />}
       bodyClassName="p-3"
     >
@@ -201,9 +203,9 @@ export function RecommendedActions() {
                   </div>
                 ) : (
                   rows.map((row) => {
-                    const isActive = row.incidentId === scenario.incident.id
                     const isDragging = draggingId === row.incidentId
-                    const tone = priorityMeta[row.priority]
+                    const selected = selectedIncidentId === row.incidentId
+                    const completion = completionOf(row)
                     return (
                       <article
                         key={row.incidentId}
@@ -211,30 +213,15 @@ export function RecommendedActions() {
                         draggable
                         onDragStart={(event) => onDragStart(event, row.incidentId)}
                         onDragEnd={onDragEnd}
+                        onClick={() => onSelectIncident?.(row.incidentId, row.scenarioKey)}
                         className={cn(
                           "relative overflow-hidden rounded-lg border bg-card p-3 shadow-sm transition-all duration-300",
                           isDragging && "opacity-40",
+                          selected && "border-primary/50 ring-2 ring-primary/20",
+                          onSelectIncident && "cursor-pointer",
                         )}
-                        style={
-                          isActive
-                            ? {
-                                borderColor: tone.color,
-                                backgroundColor: tone.bg,
-                                boxShadow: `0 0 0 2px ${tone.color}, 0 10px 24px ${tone.color}40`,
-                              }
-                            : {
-                                opacity: ACTIVE_HIGHLIGHT.dimOthers,
-                              }
-                        }
                       >
-                        {isActive ? (
-                          <span
-                            aria-hidden
-                            className="absolute inset-y-0 left-0"
-                            style={{ width: ACTIVE_HIGHLIGHT.leftBar, backgroundColor: tone.color }}
-                          />
-                        ) : null}
-                        <div className={cn("flex items-start gap-2", isActive && "pl-1.5")}>
+                        <div className="flex items-start gap-2">
                           <button
                             type="button"
                             aria-label={`Move ${row.incidentId}`}
@@ -251,28 +238,23 @@ export function RecommendedActions() {
                               <span className="font-mono text-[11px] font-semibold text-foreground">
                                 {row.incidentId}
                               </span>
-                              {isActive ? (
-                                <span
-                                  className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white"
-                                  style={{ backgroundColor: tone.color }}
-                                >
-                                  {ACTIVE_HIGHLIGHT.labelZh} · {ACTIVE_HIGHLIGHT.labelEn}
-                                </span>
-                              ) : null}
                             </div>
                             <p className="mt-1.5 text-[12px] font-medium leading-snug text-foreground">
                               {row.action}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
                               <span>{row.ownerTeam}</span>
-                              <span className="tabular">{row.eta}</span>
+                              <span className="tabular">ETA {row.eta}</span>
                               <span className="font-semibold text-[var(--p1)]">
                                 -{row.riskReduction}% risk
                               </span>
-                              <span className="inline-flex items-center gap-0.5 font-semibold text-primary">
-                                <Sparkles className="size-3" />
-                                {row.confidence}%
-                              </span>
+                              <span className="font-semibold text-foreground">Progress {completion}%</span>
+                            </div>
+                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className="h-full rounded-full bg-primary transition-all"
+                                style={{ width: `${completion}%` }}
+                              />
                             </div>
 
                             <div className="mt-3 flex flex-wrap items-center gap-2">
