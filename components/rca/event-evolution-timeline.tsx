@@ -30,7 +30,6 @@ import {
   playbackStatus,
   twinFocusAtCursor,
   ALARM_CLASS_META,
-  type AlarmClass,
   type ConvergenceStageDetail,
   type DeviceAlarmBar,
   type DeviceLifecycleDetail,
@@ -328,6 +327,7 @@ export function EventEvolutionTimeline({
       {/* 4-layer timeline */}
       <div className="grid gap-0 border-b border-border lg:grid-cols-2 xl:grid-cols-4">
         <LayerColumn
+          id="inv-layer-physical"
           layer="physical"
           titleZh="真实事件"
           titleEn="Physical Event"
@@ -343,6 +343,7 @@ export function EventEvolutionTimeline({
           }}
         />
         <LayerColumn
+          id="inv-journey-convergence"
           layer="convergence"
           titleZh="AI 收敛"
           titleEn="Convergence Pipeline"
@@ -359,6 +360,7 @@ export function EventEvolutionTimeline({
           className="border-t border-border lg:border-l lg:border-t-0"
         />
         <LayerColumn
+          id="inv-journey-ai-reasoning"
           layer="reasoning"
           titleZh="AI 推理"
           titleEn="AI Reasoning"
@@ -375,6 +377,7 @@ export function EventEvolutionTimeline({
           className="border-t border-border xl:border-l xl:border-t-0"
         />
         <LayerColumn
+          id="inv-journey-verification"
           layer="investigation"
           titleZh="人工核验"
           titleEn="Human Verification"
@@ -498,6 +501,7 @@ function ExpandList({
 }
 
 function LayerColumn({
+  id,
   layer,
   titleZh,
   titleEn,
@@ -509,6 +513,7 @@ function LayerColumn({
   onSeek,
   className,
 }: {
+  id?: string
   layer: EvolutionLayer
   titleZh: string
   titleEn: string
@@ -530,7 +535,7 @@ function LayerColumn({
           : "bg-primary"
 
   return (
-    <section className={cn("bg-card p-3", className)}>
+    <section id={id} className={cn("scroll-mt-[88px] bg-card p-3", className)}>
       <div className="mb-3 flex items-center gap-1.5">
         <span className="text-muted-foreground">{icon}</span>
         <div>
@@ -736,10 +741,17 @@ function LifecycleGantt({
         <div>
           <div className="text-[12px] font-semibold text-foreground">设备生命周期</div>
           <div className="text-[10px] text-muted-foreground">
-            Device Lifecycle Gantt · 入口：Alarm Timeline → Convergence → Evidence Trace
+            Device Lifecycle · 保留设备生命线 · 展开后按报警码单线条时长
           </div>
         </div>
-        <AlarmClassLegend />
+        <div className="flex flex-wrap gap-2 text-[9px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2.5 w-5 rounded-sm bg-[#0288d1]" /> 设备生命线
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-px w-5 bg-[#fb8c00]" /> 报警码生命线
+          </span>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -809,22 +821,6 @@ function LifecycleGantt({
   )
 }
 
-function AlarmClassLegend() {
-  return (
-    <div className="flex flex-wrap gap-2 text-[9px] text-muted-foreground">
-      {(Object.keys(ALARM_CLASS_META) as AlarmClass[]).map((key) => {
-        const meta = ALARM_CLASS_META[key]
-        return (
-          <span key={key} className="inline-flex items-center gap-1">
-            <span className="size-2 rounded-sm" style={{ backgroundColor: meta.color }} />
-            {meta.en}
-          </span>
-        )
-      })}
-    </div>
-  )
-}
-
 function DeviceLifecycleExpand({
   detail,
   endSec,
@@ -843,44 +839,79 @@ function DeviceLifecycleExpand({
   onOpenConvStage: (id: string | null) => void
 }) {
   const span = Math.max(endSec, 1)
+  const codeLanes = useMemo(() => {
+    const map = new Map<string, DeviceAlarmBar[]>()
+    for (const alarm of detail.alarms) {
+      const list = map.get(alarm.code) ?? []
+      list.push(alarm)
+      map.set(alarm.code, list)
+    }
+    return [...map.entries()]
+      .map(([code, list]) => {
+        const sorted = [...list].sort((a, b) => a.t0 - b.t0)
+        const startSec = sorted[0]!.t0
+        const endSecLane = Math.max(...sorted.map((a) => a.t0 + a.durationSec))
+        const primary = sorted[0]!
+        return {
+          code,
+          startSec,
+          durationSec: Math.max(20, endSecLane - startSec),
+          count: list.length,
+          primary,
+          classification: primary.classification,
+        }
+      })
+      .sort((a, b) => a.startSec - b.startSec || a.code.localeCompare(b.code))
+  }, [detail.alarms])
+
   return (
-    <div className="space-y-3 border-t border-border/70 px-3 py-3">
+    <div className="space-y-3 border-t border-border/70 py-3 pl-5 pr-2 sm:pl-8">
       <div>
-        <div className="mb-1.5 text-[10px] font-semibold text-foreground">
-          ▼ Alarm Timeline
-          <span className="ml-1.5 font-normal text-muted-foreground">告警展开时间线 · {detail.label}</span>
+        <div className="mb-1.5 px-1 text-[10px] font-semibold text-foreground">
+          ▼ 报警码生命线
+          <span className="ml-1.5 font-normal text-muted-foreground">
+            Alarm Code · 单线条 · 相对设备缩进 · {detail.label}
+          </span>
         </div>
-        <div className="space-y-1.5">
-          {detail.alarms.map((alarm) => {
-            const meta = ALARM_CLASS_META[alarm.classification]
-            const left = (alarm.t0 / span) * 100
-            const width = Math.max(4, (alarm.durationSec / span) * 100)
-            const selected = selectedAlarmId === alarm.id
+        <div className="space-y-1">
+          {codeLanes.map((lane) => {
+            const meta = ALARM_CLASS_META[lane.classification]
+            const left = (lane.startSec / span) * 100
+            const width = Math.max(4, (lane.durationSec / span) * 100)
+            const selected = selectedAlarmId === lane.primary.id || detail.alarms.some(
+              (a) => a.code === lane.code && a.id === selectedAlarmId,
+            )
+            const durationLabel =
+              lane.durationSec >= 60 ? `${Math.round(lane.durationSec / 60)}m` : `${lane.durationSec}s`
             return (
               <button
-                key={alarm.id}
+                key={lane.code}
                 type="button"
-                onClick={() => onSelectAlarm(alarm)}
+                onClick={() => onSelectAlarm(lane.primary)}
                 className={cn(
-                  "grid w-full grid-cols-[120px_minmax(0,1fr)] items-center gap-2 rounded-md px-1 py-0.5 text-left",
-                  selected && "bg-primary/8 ring-1 ring-primary/30",
+                  "grid w-full grid-cols-[148px_minmax(0,1fr)_44px] items-center gap-2 rounded-md px-1 py-1 text-left",
+                  selected && "bg-primary/8 ring-1 ring-primary/25",
                 )}
               >
-                <div className="min-w-0">
-                  <div className="font-mono text-[9px] tabular text-muted-foreground">{alarm.time}</div>
-                  <div className="truncate text-[10px] font-semibold text-foreground">{alarm.code}</div>
+                <div className="min-w-0 pl-1">
+                  <div className="truncate font-mono text-[10px] font-semibold text-foreground">{lane.code}</div>
+                  <div className="font-mono text-[9px] tabular text-muted-foreground">
+                    {lane.primary.time}
+                    {lane.count > 1 ? ` · ×${lane.count}` : ""}
+                  </div>
                 </div>
-                <div className="relative h-6 rounded bg-muted/35">
+                <div className="relative h-4 rounded-sm bg-muted/25">
                   <div
-                    className={cn("absolute top-1 h-4 rounded-sm", meta.bar)}
+                    className="absolute top-1/2 h-[2px] -translate-y-1/2 rounded-full"
                     style={{ left: `${left}%`, width: `${width}%`, backgroundColor: meta.color }}
-                    title={meta.en}
+                    title={`${lane.code} · ${durationLabel} · ${meta.en}`}
                   />
                   <div
                     className="pointer-events-none absolute bottom-0 top-0 w-px bg-[var(--p1)]/70"
                     style={{ left: `${(cursorSec / span) * 100}%` }}
                   />
                 </div>
+                <div className="text-right font-mono text-[10px] tabular text-muted-foreground">{durationLabel}</div>
               </button>
             )
           })}

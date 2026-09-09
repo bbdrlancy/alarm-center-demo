@@ -1,5 +1,5 @@
 /** Incident Portfolio / Digital Twin revision. Tell the assistant “回退到 DTn” to restore. */
-export const DIGITAL_TWIN_VERSION = "DT68"
+export const DIGITAL_TWIN_VERSION = "DT78"
 
 export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT1", note: "浅色 SVG 流程图" },
@@ -70,4 +70,14 @@ export const DIGITAL_TWIN_REVISION_LOG = [
   { id: "DT66", note: "事故工作台增加生成事故报告：预览全文并下载 Markdown" },
   { id: "DT67", note: "事故调查新增 Topology Impact Explorer；移除知识图谱关系模块；时间线 Time Sync" },
   { id: "DT68", note: "工作台旅程每步增加故事线说明：发生了什么 / 为什么发生 / 如何传播 / 影响了什么 / 如何恢复 / 为何相信" },
+  { id: "DT69", note: "工作台旅程描述去英文；事故调查新增左侧 Investigation Journey 故事线导航" },
+  { id: "DT70", note: "事件探索重构为 Event Discovery：重建时间线 → Event Set → 收敛 → 创建人工事故" },
+  { id: "DT71", note: "事件重建时间线改为设备生命周期风格：设备分组 + 事件生命线起止时间可展开详情" },
+  { id: "DT72", note: "事件探索新增未关联事故的独立告警（UNLINKED），可在原始告警浏览器中筛选勾选" },
+  { id: "DT73", note: "设备生命周期展开改为按报警码聚合的单线条生命线，相对设备行缩进" },
+  { id: "DT74", note: "事件探索生命周期紧凑化：单行标题、全时段底轨+激活线段、上方2–5时刻刻度" },
+  { id: "DT75", note: "设备展开改为每条告警事件一条线，发生时刻用圆点标注" },
+  { id: "DT76", note: "展开按原始告警分行；左栏完整显示设备名/报警码；Generate 下移；隐藏合并拆分建组" },
+  { id: "DT77", note: "告警悬停看信息；选中后可排除单条告警；去掉点击后时间展示" },
+  { id: "DT78", note: "排除告警按 rowId 独立控制，避免同设备多条同时变灰" },
 ] as const

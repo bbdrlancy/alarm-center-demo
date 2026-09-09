@@ -6,12 +6,20 @@ import {
   CONVERGENCE_RULES,
   getScenarioRawAlarms,
   getStageEventRows,
+  ROLE_HINT,
   RULE_SPECS,
   type ConvergenceItem,
   type ConvergenceRule,
   type EventRow,
   type TaggedAlarm,
 } from "@/lib/alarm-convergence"
+import {
+  findOrphanAlarm,
+  getAllOrphanAlarms,
+  getOrphanAlarmBundles,
+  ORPHAN_INCIDENT_ID,
+  ORPHAN_INCIDENT_TITLE,
+} from "@/lib/orphan-alarms"
 
 export type InventoryRuleKey = "raw" | ConvergenceRule["key"]
 
@@ -47,15 +55,18 @@ const STAGE_FOR_RULE: Record<string, string> = {
 }
 
 export function getInventoryRawCount(): number {
-  return scenarioOrder.reduce((sum, key) => sum + getScenarioRawAlarms(scenarios[key]).length, 0)
+  return (
+    scenarioOrder.reduce((sum, key) => sum + getScenarioRawAlarms(scenarios[key]).length, 0) +
+    getAllOrphanAlarms().length
+  )
 }
 
 export function scenarioFromEventRow(row: Pick<EventRow, "scenarioKey" | "id" | "alarmId">): ScenarioKey {
   if (row.scenarioKey) return row.scenarioKey
   const token = `${row.id} ${row.alarmId ?? ""}`
-  if (token.includes("A-C-") || token.startsWith("cooling:")) return "cooling"
-  if (token.includes("A-S-") || token.startsWith("storage:")) return "storage"
-  if (token.includes("A-N-") || token.startsWith("network:")) return "network"
+  if (token.includes("A-O-C") || token.includes("A-C-") || token.startsWith("cooling:")) return "cooling"
+  if (token.includes("A-O-S") || token.includes("A-S-") || token.startsWith("storage:")) return "storage"
+  if (token.includes("A-O-N") || token.includes("A-N-") || token.startsWith("network:")) return "network"
   return "power"
 }
 
@@ -69,6 +80,40 @@ function tagRows(scenario: ScenarioModel, rows: EventRow[]): InventoryEventRow[]
     incidentTitle: scenario.incident.titleZh,
     members: row.members,
   }))
+}
+
+function orphanAlarmToRow(alarm: TaggedAlarm): EventRow {
+  return {
+    id: alarm.id,
+    kind: "alarm",
+    timestamp: alarm.timestamp,
+    severity: alarm.severity,
+    device: alarm.device,
+    code: alarm.code,
+    displayCode: alarm.code,
+    ruleApplied: "—",
+    aggregationGroup: "—",
+    category: ROLE_HINT[alarm.role],
+    status: alarm.status,
+    summary: alarm.message,
+    expandable: false,
+    members: [alarm],
+    alarmId: alarm.id,
+  }
+}
+
+function orphanInventoryRows(): InventoryEventRow[] {
+  return getOrphanAlarmBundles().flatMap((bundle) =>
+    bundle.alarms.map((alarm) => ({
+      ...orphanAlarmToRow(alarm),
+      id: `orphan:${alarm.id}`,
+      scenarioKey: bundle.scenarioKey,
+      incidentId: ORPHAN_INCIDENT_ID,
+      domain: bundle.domain,
+      incidentTitle: ORPHAN_INCIDENT_TITLE,
+      members: [alarm],
+    })),
+  )
 }
 
 function itemToRow(scenario: ScenarioModel, rule: ConvergenceRule, item: ConvergenceItem, alarms: TaggedAlarm[]): EventRow {
@@ -126,7 +171,20 @@ export function getInventoryRulePreview(ruleKey: InventoryRuleKey): InventoryRul
     }
   })
 
-  const rows = scenarioOrder.flatMap((key) => tagRows(scenarios[key], rowsForScenario(scenarios[key], ruleKey)))
+  const incidentRows = scenarioOrder.flatMap((key) => tagRows(scenarios[key], rowsForScenario(scenarios[key], ruleKey)))
+  // Orphan / unlinked alarms only appear in the raw inventory — they are not part of any incident convergence path.
+  const orphanRows = ruleKey === "raw" ? orphanInventoryRows() : []
+  if (ruleKey === "raw" && orphanRows.length > 0) {
+    byIncident.push({
+      scenarioKey: "power",
+      incidentId: ORPHAN_INCIDENT_ID,
+      domain: "Unlinked",
+      input: orphanRows.length,
+      output: orphanRows.length,
+    })
+  }
+
+  const rows = [...incidentRows, ...orphanRows].sort((a, b) => a.timestamp.localeCompare(b.timestamp))
   const rawCount = byIncident.reduce((sum, item) => sum + item.input, 0)
   const outputCount = rows.length
   const reduced = Math.max(0, rawCount - outputCount)
@@ -137,6 +195,9 @@ export function getInventoryRulePreview(ruleKey: InventoryRuleKey): InventoryRul
 
 export function resolveInventoryAlarm(row: InventoryEventRow): TaggedAlarm | undefined {
   if (row.members?.[0]) return row.members[0]
+  const orphanId = row.alarmId ?? row.id.replace(/^orphan:/, "")
+  const orphan = findOrphanAlarm(orphanId)
+  if (orphan) return orphan
   const alarms = getScenarioRawAlarms(scenarios[row.scenarioKey])
   const rawId = row.alarmId ?? row.id.replace(`${row.scenarioKey}:`, "")
   return alarms.find((alarm) => alarm.id === rawId || alarm.device === row.device)
@@ -182,11 +243,22 @@ export function getInventoryTimeWindows(rows: EventRow[]): InventoryTimeWindow[]
       const from = stamps[0]!.timestamp
       const to = stamps[stamps.length - 1]!.timestamp
       const domain = list[0]?.domain ?? ""
-      const domainZh: Record<string, string> = { Power: "电力", Cooling: "制冷", Storage: "存储", Network: "网络" }
+      const domainZh: Record<string, string> = {
+        Power: "电力",
+        Cooling: "制冷",
+        Storage: "存储",
+        Network: "网络",
+        Unlinked: "未关联",
+      }
+      const orphan = incidentId === ORPHAN_INCIDENT_ID
       return {
         id: incidentId,
-        zh: `${domainZh[domain] ?? domain} ${from.slice(0, 5)}–${to.slice(0, 5)}`,
-        en: `${incidentId} ${from.slice(0, 5)}–${to.slice(0, 5)}`,
+        zh: orphan
+          ? `未关联 ${from.slice(0, 5)}–${to.slice(0, 5)}`
+          : `${domainZh[domain] ?? domain} ${from.slice(0, 5)}–${to.slice(0, 5)}`,
+        en: orphan
+          ? `Unlinked ${from.slice(0, 5)}–${to.slice(0, 5)}`
+          : `${incidentId} ${from.slice(0, 5)}–${to.slice(0, 5)}`,
         from,
         to,
       }

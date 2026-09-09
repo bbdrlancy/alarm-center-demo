@@ -44,9 +44,16 @@ function toggleMethod(current: PipelineMethodKey[], key: PipelineMethodKey) {
 export function ConvergenceSimulator({
   selectedRows,
   onLocate,
+  inputLabel,
+  onSelectIncident,
+  selectedIncidentId,
 }: {
   selectedRows: InventoryEventRow[]
   onLocate: (row: InventoryEventRow) => void
+  /** Override header badge, e.g. Event Sets instead of Raw Alarms. */
+  inputLabel?: string
+  onSelectIncident?: (incident: SimulatorIncident) => void
+  selectedIncidentId?: string | null
 }) {
   const [methods, setMethods] = useState<PipelineMethodKey[]>(DEFAULT_PIPELINE_METHODS)
   const [openRule, setOpenRule] = useState<string | null>(null)
@@ -65,15 +72,19 @@ export function ConvergenceSimulator({
   }
 
   return (
-    <section className="mt-3 overflow-hidden rounded-xl border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(11,18,36,0.96),rgba(8,13,26,0.94))] text-cyan-50 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
+    <section
+      id="convergence-simulator"
+      className="mt-0 overflow-hidden rounded-xl border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(11,18,36,0.96),rgba(8,13,26,0.94))] text-cyan-50 shadow-[0_0_28px_rgba(34,211,238,0.08)]"
+    >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-cyan-400/15 px-4 py-3">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-wide text-cyan-200/55">Convergence Simulator</div>
           <h3 className="text-[15px] font-semibold text-cyan-50">收敛模拟器</h3>
+          <p className="mt-0.5 text-[10px] text-cyan-200/50">输入对象：Event Sets · 而非 Raw Alarms</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 font-mono text-[12px] font-bold text-cyan-100">
-            Selected {selectedRows.length} Alarms
+            {inputLabel ?? `Selected ${selectedRows.length} Events`}
           </div>
           <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[12px] text-cyan-100/80">
             {selectedCount} methods
@@ -103,6 +114,8 @@ export function ConvergenceSimulator({
             selectedRows={selectedRows}
             onOpen={setLineageId}
             onLocate={onLocate}
+            onSelectIncident={onSelectIncident}
+            selectedIncidentId={selectedIncidentId}
           />
         </>
       )}
@@ -794,46 +807,57 @@ function IncidentLineage({
   selectedRows,
   onOpen,
   onLocate,
+  onSelectIncident,
+  selectedIncidentId,
 }: {
   result: SimulatorResult
   lineage: SimulatorIncident | null
   selectedRows: InventoryEventRow[]
   onOpen: (id: string | null) => void
   onLocate: (row: InventoryEventRow) => void
+  onSelectIncident?: (incident: SimulatorIncident) => void
+  selectedIncidentId?: string | null
 }) {
   return (
-    <div className="px-4 py-4">
+    <div id="candidate-incident" className="scroll-mt-[88px] px-4 py-4">
       <div className="mb-3">
-        <div className="text-[10px] font-bold uppercase tracking-wide text-cyan-200/55">Alarm Lineage View</div>
-        <div className="text-[13px] font-semibold">告警血缘</div>
+        <div className="text-[10px] font-bold uppercase tracking-wide text-cyan-200/55">Candidate Incident</div>
+        <div className="text-[13px] font-semibold">候选事故</div>
+        <p className="mt-0.5 text-[10px] text-cyan-200/45">由 Event Set 收敛得到 · 可选中后创建人工事故</p>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
-        {result.incidents.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => {
-              onOpen(lineage?.id === item.id ? null : item.id)
-              const match = selectedRows.find((row) => item.members.some((alarm) => alarm.id === row.alarmId || alarm.device === row.device))
-              if (match) onLocate(match)
-            }}
-            className={cn(
-              "rounded-lg border px-3 py-2.5 text-left",
-              lineage?.id === item.id ? "border-cyan-300/50 bg-cyan-400/10" : "border-white/10 bg-white/4 hover:border-cyan-300/25",
-            )}
-          >
-            <div className="text-[12px] font-bold text-cyan-50">{item.titleZh}</div>
-            <div className="text-[10px] text-cyan-200/50">{item.title}</div>
-            <div className="mt-1 font-mono text-[11px] text-cyan-100/80">
-              {item.incidentId} · {item.device} · {item.merged} alarms · {item.confidence}%
-            </div>
-          </button>
-        ))}
+        {result.incidents.map((item) => {
+          const active = lineage?.id === item.id || selectedIncidentId === item.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                onOpen(lineage?.id === item.id ? null : item.id)
+                onSelectIncident?.(item)
+                const match = selectedRows.find((row) =>
+                  item.members.some((alarm) => alarm.id === row.alarmId || alarm.device === row.device),
+                )
+                if (match) onLocate(match)
+              }}
+              className={cn(
+                "rounded-lg border px-3 py-2.5 text-left",
+                active ? "border-cyan-300/50 bg-cyan-400/10" : "border-white/10 bg-white/4 hover:border-cyan-300/25",
+              )}
+            >
+              <div className="text-[12px] font-bold text-cyan-50">{item.titleZh}</div>
+              <div className="text-[10px] text-cyan-200/50">{item.title}</div>
+              <div className="mt-1 font-mono text-[11px] text-cyan-100/80">
+                {item.incidentId} · {item.device} · {item.merged} alarms · {item.confidence}%
+              </div>
+            </button>
+          )
+        })}
       </div>
 
       {lineage ? (
         <div className="mt-3 rounded-lg border border-cyan-400/20 bg-[#07101f]/80 px-3 py-3">
-          <div className="text-[10px] font-bold uppercase text-cyan-200/50">Original Alarms → Selected Pipeline → Incident</div>
+          <div className="text-[10px] font-bold uppercase text-cyan-200/50">Event Set → Selected Pipeline → Incident</div>
           <div className="mt-2 flex flex-wrap gap-1">
             {lineage.members.slice(0, 16).map((alarm) => (
               <span key={alarm.id} className="rounded border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-cyan-100/80">
@@ -860,7 +884,7 @@ function IncidentLineage({
           </div>
         </div>
       ) : (
-        <p className="mt-2 text-[11px] text-cyan-200/45">点击上方收敛结果，查看从原始告警到当前路径输出的追溯链路。</p>
+        <p className="mt-2 text-[11px] text-cyan-200/45">点击候选事故，查看 Event Set 到收敛结果的追溯链路。</p>
       )}
     </div>
   )

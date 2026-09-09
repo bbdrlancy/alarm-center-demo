@@ -1,13 +1,18 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { ArrowDown, ArrowUp, ChevronDown, Plus } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { ArrowDown, ArrowRight, ArrowUp, Check, ChevronDown, Circle, Plus } from "lucide-react"
 import { InvestigationChatDialog } from "@/components/rca/investigation-chat-dialog"
 import { EventEvolutionTimeline } from "@/components/rca/event-evolution-timeline"
 import { TopologyImpactExplorer } from "@/components/rca/topology-impact-explorer"
 import { IncidentSelectorBar } from "@/components/scenario/incident-selector"
 import { Panel } from "@/components/primitives"
 import { scenarios, type ScenarioKey } from "@/data/scenarios"
+import {
+  INVESTIGATION_JOURNEY_STEPS,
+  investigationSectionId,
+  type InvestigationJourneyId,
+} from "@/lib/investigation-journey"
 import {
   getInvestigationWorkbench,
   type RootCauseCandidate,
@@ -21,6 +26,18 @@ const HEALTH_STYLE = {
   Watch: "text-l3 bg-muted/40 border-border",
 } as const
 
+const STEP_STATUS_STYLE = {
+  confirmed: "border-[#3dcd58]/35 bg-[#3dcd58]/10 text-[#2e7d32]",
+  pending: "border-[#fb8c00]/35 bg-[#fb8c00]/10 text-[#ef6c00]",
+  next: "border-border bg-muted/40 text-l3",
+} as const
+
+const STEP_STATUS_ZH = {
+  confirmed: "已确认",
+  pending: "待核验",
+  next: "下一步",
+} as const
+
 type CandidateSort = "confidence" | "alarmCount" | "historicalSimilarity" | "evidenceCount"
 
 export function IncidentInvestigationWorkspace() {
@@ -28,6 +45,9 @@ export function IncidentInvestigationWorkspace() {
   const [chatOpen, setChatOpen] = useState(true)
   const [addChainId, setAddChainId] = useState<string | null>(null)
   const [cursorSec, setCursorSec] = useState(0)
+  const [currentStep, setCurrentStep] = useState<InvestigationJourneyId>("ai-result")
+  const [visited, setVisited] = useState<Set<InvestigationJourneyId>>(() => new Set(["ai-result"]))
+  const clickLock = useRef(false)
 
   const scenario = scenarios[focusKey]
   const workbench = useMemo(() => getInvestigationWorkbench(scenario), [scenario])
@@ -45,7 +65,43 @@ export function IncidentInvestigationWorkspace() {
     setSortDir("desc")
     setAddChainId(null)
     setCursorSec(0)
+    setCurrentStep("ai-result")
+    setVisited(new Set(["ai-result"]))
   }, [focusKey, workbench.candidates])
+
+  useEffect(() => {
+    const syncFromScroll = () => {
+      if (clickLock.current) return
+      const marker = 140
+      const passed = INVESTIGATION_JOURNEY_STEPS.map((step) => {
+        const node = document.getElementById(investigationSectionId(step.id))
+        if (!node) return null
+        return { id: step.id, top: node.getBoundingClientRect().top }
+      }).filter((item): item is { id: InvestigationJourneyId; top: number } => Boolean(item))
+      const active = [...passed].reverse().find((item) => item.top <= marker) ?? passed[0]
+      if (!active) return
+      setCurrentStep(active.id)
+      setVisited((prev) => withVisited(prev, active.id))
+    }
+    const unlockOnWheel = () => {
+      clickLock.current = false
+    }
+    window.addEventListener("scroll", syncFromScroll, { passive: true })
+    window.addEventListener("wheel", unlockOnWheel, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", syncFromScroll)
+      window.removeEventListener("wheel", unlockOnWheel)
+    }
+  }, [focusKey])
+
+  const goTo = useCallback((id: InvestigationJourneyId) => {
+    clickLock.current = true
+    setCurrentStep(id)
+    setVisited((prev) => withVisited(prev, id))
+    window.setTimeout(() => {
+      document.getElementById(investigationSectionId(id))?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 40)
+  }, [])
 
   const candidates = useMemo(() => {
     const list = [...workbench.candidates]
@@ -54,6 +110,8 @@ export function IncidentInvestigationWorkspace() {
   }, [workbench.candidates, sortKey, sortDir])
 
   const selected = candidates.find((item) => item.id === selectedId) ?? candidates[0]
+  const topCandidate = candidates.find((item) => item.likelyRoot) ?? candidates[0]
+  const progress = Math.round((visited.size / INVESTIGATION_JOURNEY_STEPS.length) * 100)
 
   const toggleSort = (key: CandidateSort) => {
     if (sortKey === key) setSortDir((dir) => (dir === "desc" ? "asc" : "desc"))
@@ -68,9 +126,18 @@ export function IncidentInvestigationWorkspace() {
       id="incident-investigation-workspace"
       className={cn(
         "grid items-start gap-4 transition-[grid-template-columns] duration-300",
-        chatOpen ? "lg:grid-cols-[minmax(0,1fr)_360px]" : "lg:grid-cols-[minmax(0,1fr)_44px]",
+        chatOpen
+          ? "lg:grid-cols-[220px_minmax(0,1fr)_360px]"
+          : "lg:grid-cols-[220px_minmax(0,1fr)_44px]",
       )}
     >
+      <InvestigationJourneyNav
+        current={currentStep}
+        visited={visited}
+        progress={progress}
+        onSelect={goTo}
+      />
+
       <div className="min-w-0 space-y-4">
         <div className="overflow-hidden rounded-lg border border-border bg-card shadow-card">
           <IncidentSelectorBar
@@ -84,35 +151,106 @@ export function IncidentInvestigationWorkspace() {
             <div className="text-[11px] font-bold text-l3">事故调查</div>
             <div className="text-[13px] font-semibold text-l1">Evidence Reconstruction Workspace</div>
             <div className="text-[10px] text-l4">
-              发生了什么 → 影响了谁 → 核验确认 · Event Evolution + Impact Explorer
+              AI 结论 → 传播 → 收敛 → 推理 → 核验 → 候选 → 证据 → 结论
             </div>
           </div>
         </div>
 
-        <EventEvolutionTimeline
-          scenario={scenario}
-          externalAddChainId={addChainId}
-          onExternalAddConsumed={() => setAddChainId(null)}
-          cursorSec={cursorSec}
-          onCursorSecChange={setCursorSec}
-        />
+        <JourneySection id="ai-result" current={currentStep === "ai-result"}>
+          <Panel title="AI 结论" subtitle="AI Result">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard zh="根因" en="Root Cause" value={scenario.incident.rootCauseZh} detail={scenario.incident.rootCause} />
+              <StatCard zh="置信度" en="Confidence" value={`${scenario.incident.confidence}%`} />
+              <StatCard
+                zh="告警收敛"
+                en="Alarm Reduction"
+                value={scenario.incident.alarmReduction}
+                detail={`降幅 ${scenario.incident.reductionRate}%`}
+              />
+              <StatCard zh="分析耗时" en="Analysis Time" value={scenario.incident.analysisTime} />
+            </div>
+            <p className="mt-3 text-[13px] leading-relaxed text-l1">{scenario.incident.executiveLine}</p>
+            <p className="mt-2 text-[12px] leading-relaxed text-l3">{scenario.incident.rcaSummary}</p>
+            {topCandidate ? (
+              <div className="mt-3 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5">
+                <div className="text-[10px] font-semibold text-primary">Top Candidate · 首选根因</div>
+                <div className="mt-1 text-[13px] font-bold text-l1">{topCandidate.nameZh}</div>
+                <div className="text-[11px] text-l4">{topCandidate.name}</div>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-l2">{topCandidate.whyZh}</p>
+              </div>
+            ) : null}
+          </Panel>
+        </JourneySection>
 
-        <TopologyImpactExplorer scenario={scenario} cursorSec={cursorSec} />
+        <JourneySection id="propagation" current={currentStep === "propagation"}>
+          <TopologyImpactExplorer scenario={scenario} cursorSec={cursorSec} />
+        </JourneySection>
 
-        <DetermineCause
-          candidates={candidates}
-          selectedId={selected?.id ?? ""}
-          whyId={whyId}
-          sortKey={sortKey}
-          sortDir={sortDir}
-          onSort={toggleSort}
-          onSelect={setSelectedId}
-          onWhy={setWhyId}
-          onAddToTimeline={(chainId) => setAddChainId(chainId)}
-        />
+        <JourneySection
+          id="convergence"
+          current={currentStep === "convergence" || currentStep === "ai-reasoning" || currentStep === "verification"}
+          anchor={false}
+        >
+          <EventEvolutionTimeline
+            scenario={scenario}
+            externalAddChainId={addChainId}
+            onExternalAddConsumed={() => setAddChainId(null)}
+            cursorSec={cursorSec}
+            onCursorSecChange={setCursorSec}
+          />
+        </JourneySection>
+
+        <JourneySection id="candidate-causes" current={currentStep === "candidate-causes"}>
+          <DetermineCause
+            candidates={candidates}
+            selectedId={selected?.id ?? ""}
+            whyId={whyId}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={toggleSort}
+            onSelect={setSelectedId}
+            onWhy={setWhyId}
+            onAddToTimeline={(chainId) => setAddChainId(chainId)}
+          />
+        </JourneySection>
+
         {selected ? (
-          <DeviceEvidence candidate={selected} onAddToTimeline={() => setAddChainId(selected.chainId)} />
+          <JourneySection id="device-evidence" current={currentStep === "device-evidence"}>
+            <DeviceEvidence candidate={selected} onAddToTimeline={() => setAddChainId(selected.chainId)} />
+          </JourneySection>
         ) : null}
+
+        <JourneySection id="conclusion" current={currentStep === "conclusion"}>
+          <Panel title="调查结论" subtitle="Conclusion">
+            <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+              <div className="text-[10px] font-semibold text-primary">最终确认 · Final Confirmation</div>
+              <div className="mt-1 text-[16px] font-extrabold text-l1">{scenario.incident.rootCauseZh}</div>
+              <div className="text-[12px] text-l4">{scenario.incident.rootCause}</div>
+              <p className="mt-2 text-[12px] leading-relaxed text-l2">
+                置信度 {scenario.incident.confidence}% · {scenario.timeline.conclusion}
+              </p>
+            </div>
+            <div className="mt-3 space-y-2">
+              <div className="text-[11px] font-bold text-l3">核验进度 · Verification Progress</div>
+              {workbench.steps.map((step) => (
+                <div
+                  key={step.id}
+                  className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-border bg-muted/15 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-semibold text-l1">{step.stepZh}</div>
+                    <div className="text-[10px] text-l4">{step.stepEn}</div>
+                    <div className="mt-1 text-[11px] text-l2">{step.finding}</div>
+                  </div>
+                  <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold", STEP_STATUS_STYLE[step.status])}>
+                    {STEP_STATUS_ZH[step.status]}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-l3">{scenario.graph.conclusion}</p>
+          </Panel>
+        </JourneySection>
       </div>
 
       <InvestigationChatDialog
@@ -122,6 +260,128 @@ export function IncidentInvestigationWorkspace() {
         open={chatOpen}
         onOpenChange={setChatOpen}
       />
+    </div>
+  )
+}
+
+function withVisited(prev: Set<InvestigationJourneyId>, id: InvestigationJourneyId) {
+  if (prev.has(id)) return prev
+  const next = new Set(prev)
+  next.add(id)
+  return next
+}
+
+function InvestigationJourneyNav({
+  current,
+  visited,
+  progress,
+  onSelect,
+}: {
+  current: InvestigationJourneyId
+  visited: Set<InvestigationJourneyId>
+  progress: number
+  onSelect: (id: InvestigationJourneyId) => void
+}) {
+  return (
+    <aside
+      id="investigation-journey-nav"
+      className="mb-3 rounded-xl border border-border bg-card p-3 shadow-card lg:sticky lg:top-[7.75rem] lg:mb-0 lg:max-h-[calc(100vh-8.5rem)] lg:self-start lg:overflow-y-auto"
+    >
+      <div className="text-[11px] font-bold text-foreground">调查旅程</div>
+      <div className="text-[10px] text-muted-foreground">Investigation Journey</div>
+      <div className="mt-3">
+        <div className="mb-1 flex items-baseline justify-between text-[10px]">
+          <span className="font-semibold text-muted-foreground">Investigation Progress</span>
+          <span className="font-mono font-bold tabular text-foreground">{progress}%</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+      <nav className="mt-3 flex gap-1 overflow-x-auto lg:block lg:space-y-0.5 lg:overflow-visible" aria-label="Investigation Journey">
+        {INVESTIGATION_JOURNEY_STEPS.map((step) => {
+          const done = visited.has(step.id) && current !== step.id
+          const active = current === step.id
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => onSelect(step.id)}
+              className={cn(
+                "flex min-w-[168px] items-start gap-2 rounded-lg px-2 py-1.5 text-left lg:min-w-0",
+                active && "bg-primary/10",
+                !active && "hover:bg-muted/50",
+              )}
+            >
+              <span className="mt-0.5 grid size-4 shrink-0 place-items-center">
+                {done ? (
+                  <Check className="size-3.5 text-primary" />
+                ) : active ? (
+                  <ArrowRight className="size-3.5 text-primary" />
+                ) : (
+                  <Circle className="size-3 text-muted-foreground/50" />
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className={cn("block text-[12px] font-semibold leading-snug", active ? "text-primary" : "text-foreground")}>
+                  {step.question}
+                </span>
+                <span className={cn("mt-0.5 block text-[10px]", active ? "text-primary/70" : "text-muted-foreground")}>
+                  {step.label}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </nav>
+    </aside>
+  )
+}
+
+function JourneySection({
+  id,
+  current,
+  children,
+  anchor = true,
+}: {
+  id: InvestigationJourneyId
+  current: boolean
+  children: ReactNode
+  /** When false, section header shows but scroll target lives inside children (e.g. timeline layers). */
+  anchor?: boolean
+}) {
+  const step = INVESTIGATION_JOURNEY_STEPS.find((item) => item.id === id)!
+  return (
+    <section
+      id={anchor ? investigationSectionId(id) : undefined}
+      className={cn("scroll-mt-[88px] space-y-2", current && "rounded-xl ring-1 ring-primary/25")}
+    >
+      <div className="px-0.5">
+        <div className="text-[13px] font-bold text-foreground">{step.question}</div>
+        <div className="text-[10px] text-muted-foreground">{step.label}</div>
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function StatCard({
+  zh,
+  en,
+  value,
+  detail,
+}: {
+  zh: string
+  en: string
+  value: string
+  detail?: string
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/15 px-3 py-2.5">
+      <div className="text-[10px] font-semibold text-l3">{zh}</div>
+      <div className="text-[9px] text-l4">{en}</div>
+      <div className="mt-1.5 text-[14px] font-extrabold leading-snug text-l1">{value}</div>
+      {detail ? <div className="mt-0.5 text-[10px] text-l4">{detail}</div> : null}
     </div>
   )
 }
@@ -321,7 +581,7 @@ function DeviceEvidence({
   )
 }
 
-function EvidenceCard({ zh, en, children }: { zh: string; en: string; children: React.ReactNode }) {
+function EvidenceCard({ zh, en, children }: { zh: string; en: string; children: ReactNode }) {
   return (
     <div className="rounded-lg border border-border bg-muted/15 px-3 py-3">
       <div className="mb-2 text-[10px] font-bold text-l3">{zh}</div>

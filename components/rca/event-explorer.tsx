@@ -299,7 +299,9 @@ export function EventExplorer({
           <select value={incident} onChange={(event) => setIncident(event.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 text-[11px]">
             <option value="all">全部事故 · All Incidents</option>
             {incidents.map((item) => (
-              <option key={item} value={item}>{item}</option>
+              <option key={item} value={item}>
+                {item === "UNLINKED" ? "UNLINKED · 未关联事故" : item}
+              </option>
             ))}
           </select>
         ) : null}
